@@ -77,7 +77,7 @@ enum token_type
     TokenType_BitOr,
     TokenType_BitXor,
 
-    TokenType_Number,
+    TokenType_Int,
     TokenType_Identifier,
 };
 
@@ -87,6 +87,10 @@ struct token
     u32 Length;
     u32 Line;
     char* Content;
+    union
+    {
+        u64 Number;
+    };
 };
 
 const char* TokenTypeStr(token* Token);

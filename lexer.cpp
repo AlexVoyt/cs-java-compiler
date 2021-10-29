@@ -86,7 +86,7 @@ const char* TokenTypeStr(token* Token)
         case(TokenType_BitAnd): {return "BitAnd";} break;
         case(TokenType_BitOr): {return "BitOr";} break;
         case(TokenType_BitXor): {return "BitXor";} break;
-        case(TokenType_Number): {return "Number";} break;
+        case(TokenType_Int): {return "Int";} break;
         case(TokenType_Identifier): {return "Identifier";} break;
         case(TokenType_Backslash): {return "Backslash";} break;
 
@@ -179,12 +179,20 @@ token GetToken(tokenizer* Tokenizer)
             else if(IsNumeric(*C))
             {
                 // TODO: float support, error on invalid number, scientific notation
-                Result.Type = TokenType_Number;
+                Result.Type = TokenType_Int;
+                ParseNumber(&Result);
+                u32 Digit = (*C - '0');
+                u64 Number = Digit;
                 while(*Tokenizer->At && 
                      (IsNumeric(*Tokenizer->At)))
                 {
+                    Digit = (*Tokenizer->At - '0');
+                    if(Number > (UnsignedLongMax - Digit)/10)
+                        FatalError("Maximum integer number overflow");
+                    Number = Number*10+Digit;
                     Tokenizer->At++;
                 }
+                Result.Number = Number;
             }
             else
             {
@@ -207,8 +215,13 @@ void PrintToken(token* Token)
         SET_TERM_COLOR(TERM_RED);
     }
 
-    printf("Line: %3d, Type: %12s, Length: %3d, Content: %.*s\n", Token->Line, TokenTypeStr(Token),
-                                                                  Token->Length, Token->Length, Token->Content);
+    if(Token->Type != TokenType_Int)
+        printf("Line: %3d, Type: %12s, Length: %3d, Content: %.*s\n", 
+                Token->Line, TokenTypeStr(Token), Token->Length, Token->Length, Token->Content);
+    else
+        printf("Line: %3d, Type: %12s, Length: %3d, Value: %ld\n",
+                Token->Line, TokenTypeStr(Token), Token->Length, Token->Number);
+
     RESET_TERM_COLOR();
 }
 

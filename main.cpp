@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdint.h>
+#include <vector>
 #define InvalidCodePath assert(0)
 
 typedef int8_t  i8;
@@ -14,8 +15,16 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
+const u64 UnsignedLongMax = 9223372036854775807;
+void FatalError(const char* ErrorMsg)
+{
+    printf("%s\n", ErrorMsg);
+    exit(1);
+}
+
 #include "term.h"
 #include "lexer.cpp"
+
 
 // TODO: error handling
 char* ReadFile(const char* Filename)
@@ -37,12 +46,15 @@ char* ReadFile(const char* Filename)
     return Result;
 }
 
+
+using namespace std;
 int main()
 {
     // const char* Source = " a3 3a. , \' _ \"* \\ ___ _ds2_ a s ; 732 821 0229 32:3 a82_ [}]asd public 233213093298x2140;3(230)12";
     const char* Source = ReadFile("test.cs");
     printf("Source string: %s\n", Source);
 
+    vector<token> Tokens;
     tokenizer Tokenizer;
     Tokenizer.At = (char* )Source;
     Tokenizer.Line = 1;
@@ -50,9 +62,15 @@ int main()
     while(Lexing)
     {
         token Token = GetToken(&Tokenizer);
-        PrintToken(&Token);
         if(Token.Type == TokenType_EndOfStream)
             Lexing = false;
+        Tokens.push_back(Token);
+
+    }
+
+    for(token Token : Tokens)
+        if(Token.Type == TokenType_Int)
+            PrintToken(&Token);
     }
 
     return 0;
