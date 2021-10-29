@@ -179,11 +179,93 @@ token GetToken(tokenizer* Tokenizer)
             else if(IsNumeric(*C))
             {
                 // TODO: float support, error on invalid number, scientific notation
+                /*
+                    float tests
+
+                    0.0
+                    1.e-7
+                    0.E8
+                    ----
+                    .0
+                    0.
+                    1.0e1
+                    1.e
+                    1e
+                    e
+                    .e8
+                    ----
+                    Width = 0.E - 5; “акое нужно провер€ть?
+                */
+
                 Result.Type = TokenType_Number;
                 while(*Tokenizer->At && 
-                     (IsNumeric(*Tokenizer->At)))
+                      IsNumeric(*Tokenizer->At))
                 {
                     Tokenizer->At++;
+                }
+                if (*Tokenizer->At &&
+                    *Tokenizer->At == '.')
+                {
+                    Tokenizer->At++;
+                    if (IsAlpha(*Tokenizer->At))
+                    {
+                        while (*Tokenizer->At &&
+                                (IsNumeric(*Tokenizer->At) || IsAlpha(*Tokenizer->At)))
+                        {
+                            Tokenizer->At++;
+                        }
+                        Result.Type = TokenType_Unknown;
+                        break;
+                    }
+                    while (*Tokenizer->At &&
+                            IsNumeric(*Tokenizer->At))
+                    {
+                        Tokenizer->At++;
+                    }
+                    if (*Tokenizer->At)
+                    {
+                        if (*Tokenizer->At == 'e' || *Tokenizer->At == 'E')
+                        {
+                            Tokenizer->At++;
+                            if (*Tokenizer->At && (IsNumeric(*Tokenizer->At) || *Tokenizer->At == '-' || *Tokenizer->At == '+'))
+                            {
+                                Tokenizer->At++;
+                                while (*Tokenizer->At &&
+                                    IsNumeric(*Tokenizer->At))
+                                {
+                                    Tokenizer->At++;
+                                }
+                            }
+                            else
+                            {
+                                // TODO отправл€ть до конца строки или до след токена? „тоб можно было несколько ошибок в строке выводить
+                                while (*Tokenizer->At &&
+                                    (IsNumeric(*Tokenizer->At) || IsAlpha(*Tokenizer->At)))
+                                {
+                                    Tokenizer->At++;
+                                }
+                                Result.Type = TokenType_Unknown;
+                            }
+                        }
+                        else
+                        {
+                            while (*Tokenizer->At &&
+                                (IsNumeric(*Tokenizer->At) || IsAlpha(*Tokenizer->At)))
+                            {
+                                Tokenizer->At++;
+                            }
+                            Result.Type = TokenType_Unknown;
+                        }
+                    }
+                    else
+                    {
+                        while (*Tokenizer->At &&
+                            (IsNumeric(*Tokenizer->At) || IsAlpha(*Tokenizer->At)))
+                        {
+                            Tokenizer->At++;
+                        }
+                        Result.Type = TokenType_Unknown;
+                    }
                 }
             }
             else
