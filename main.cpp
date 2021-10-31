@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -28,7 +30,7 @@ char* ReadFile(const char* Filename)
     u32 FileLength = ftell(File);
     fseek(File, 0, SEEK_SET);
 
-    Result = (char* )malloc(FileLength + 1);
+    Result = (char*)malloc(FileLength + 1);
     assert(Result);
     fread(Result, FileLength, 1, File);
     Result[FileLength] = 0;
@@ -40,18 +42,18 @@ char* ReadFile(const char* Filename)
 int main()
 {
     // const char* Source = " a3 3a. , \' _ \"* \\ ___ _ds2_ a s ; 732 821 0229 32:3 a82_ [}]asd public 233213093298x2140;3(230)12";
-    const char* Source = ReadFile("test.cs");
+    const char* Source = ReadFile("test2.cs");
     printf("Source string: %s\n", Source);
 
     tokenizer Tokenizer;
-    Tokenizer.At = (char* )Source;
+    Tokenizer.At = (char*)Source;
     Tokenizer.Line = 1;
     bool Lexing = true;
-    while(Lexing)
+    while (Lexing)
     {
         token Token = GetToken(&Tokenizer);
         PrintToken(&Token);
-        if(Token.Type == TokenType_EndOfStream)
+        if (Token.Type == TokenType_EndOfStream)
             Lexing = false;
     }
 

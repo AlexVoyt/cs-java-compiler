@@ -4,36 +4,17 @@ class MyClass
 {
     static void Main()
     {
-        double Width, Height, GlassArea, WoodLength;
-        string WidthString, HeightString;
-
-        /*
-        WidthString = Console.ReadLine();
-        Width = double.Parse(WidthString);
-
-        HeightString = Console.ReadLine();
-        Height = double.Parse(HeightString);
-
-        GlassArea = Width*Height;
-        WoodLength = (Width+Height)*2;
-        WoodLength += 202;
-        WoodLength *= 202;
-
-        Console.WriteLine(WoodLength);
-        Console.WriteLine(GlassArea);
-        */
-
-        op++;
-        char _c = 'c';
-        char Beep = '\a';
-        Console.Write(_c);
-        Console.Write(_c);
-        Console.Write(_c);
-        Console.Write(_c);
-        Console.Write(_c);
-        Console.Write('\r');
-        Console.Write('a');
-        Console.WriteLine('a');
+        float Width;
+        Width = 1.1;
+        Width = 1.0e-1;
+        Width = 1.e15;
+        Width = 0.E;
+        Width = 0.;
+        Width = .0;
+        Width = 1.0e1;
+        Width = 1e;
+        Width = e;
+        Width = .e8;
+        Width = 0.-5;
     }
-*
-
+}
