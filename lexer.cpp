@@ -180,7 +180,6 @@ token GetToken(tokenizer* Tokenizer)
             {
                 // TODO: float support, error on invalid number, scientific notation
                 Result.Type = TokenType_Int;
-                ParseNumber(&Result);
                 u32 Digit = (*C - '0');
                 u64 Number = Digit;
                 while(*Tokenizer->At && 
@@ -192,7 +191,7 @@ token GetToken(tokenizer* Tokenizer)
                     Number = Number*10+Digit;
                     Tokenizer->At++;
                 }
-                Result.Number = Number;
+                Result.Integer = Number;
             }
             else
             {
@@ -220,7 +219,7 @@ void PrintToken(token* Token)
                 Token->Line, TokenTypeStr(Token), Token->Length, Token->Length, Token->Content);
     else
         printf("Line: %3d, Type: %12s, Length: %3d, Value: %ld\n",
-                Token->Line, TokenTypeStr(Token), Token->Length, Token->Number);
+                Token->Line, TokenTypeStr(Token), Token->Length, Token->Integer);
 
     RESET_TERM_COLOR();
 }

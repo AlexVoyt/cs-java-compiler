@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 #define InvalidCodePath assert(0)
+#define global_variable static
 
 typedef int8_t  i8;
 typedef int16_t i16;
@@ -24,6 +25,7 @@ void FatalError(const char* ErrorMsg)
 
 #include "term.h"
 #include "lexer.cpp"
+#include "ast.cpp"
 
 
 // TODO: error handling
@@ -46,13 +48,19 @@ char* ReadFile(const char* Filename)
     return Result;
 }
 
+struct keyword_table
+{
+};
+
+global_variable keyword_table KeywordTable;
+
 
 using namespace std;
 int main()
 {
     // const char* Source = " a3 3a. , \' _ \"* \\ ___ _ds2_ a s ; 732 821 0229 32:3 a82_ [}]asd public 233213093298x2140;3(230)12";
     const char* Source = ReadFile("test.cs");
-    printf("Source string: %s\n", Source);
+    // printf("Source string: %s\n", Source);
 
     vector<token> Tokens;
     tokenizer Tokenizer;
@@ -68,10 +76,20 @@ int main()
 
     }
 
+#if 0
     for(token Token : Tokens)
         if(Token.Type == TokenType_Int)
             PrintToken(&Token);
-    }
+#endif
+
+    declaration* Decl = ParseVariableDeclaration(Tokens.data());
+    printf("Type: %d\n", Decl->Type);
+    printf("Name: %.*s\n", Decl->NameLength, Decl->Name);
+    printf("Expression: \n");
+    printf("{\n");
+    printf("    Type: %d\n", Decl->VariableDeclaration.Expr->Type);
+    printf("    Value: %ld\n", Decl->VariableDeclaration.Expr->IntegerLiteral.Value);
+    printf("}\n");
 
     return 0;
 }

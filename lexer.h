@@ -89,7 +89,7 @@ struct token
     char* Content;
     union
     {
-        u64 Number;
+        u64 Integer;
     };
 };
 
