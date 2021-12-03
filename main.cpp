@@ -26,6 +26,10 @@ void FatalError(const char* ErrorMsg)
 #include "term.h"
 #include "lexer.cpp"
 #include "ast.cpp"
+#include "print.cpp"
+
+#define str(x) #x
+#define xstr(x) str(x)
 
 
 // TODO: error handling
@@ -48,11 +52,13 @@ char* ReadFile(const char* Filename)
     return Result;
 }
 
+#if 0
 struct keyword_table
 {
 };
 
 global_variable keyword_table KeywordTable;
+#endif
 
 
 using namespace std;
@@ -83,13 +89,20 @@ int main()
 #endif
 
     declaration* Decl = ParseVariableDeclaration(Tokens.data());
-    printf("Type: %d\n", Decl->Type);
-    printf("Name: %.*s\n", Decl->NameLength, Decl->Name);
-    printf("Expression: \n");
-    printf("{\n");
-    printf("    Type: %d\n", Decl->VariableDeclaration.Expr->Type);
-    printf("    Value: %ld\n", Decl->VariableDeclaration.Expr->IntegerLiteral.Value);
-    printf("}\n");
 
+    printf("\n\n\n\n");
+    Print(Decl);
+#if 0
+    Print(NewBinaryExpression(TokenType_Plus, 
+                              NewIntegerExpression(123), 
+                              NewIntegerExpression(392)));
+#endif
+
+    Print(NewBinaryExpression(TokenType_Plus, 
+                              NewIntegerExpression(123), 
+                              NewBinaryExpression(TokenType_Asterisk, 
+                                                  NewIntegerExpression(666),
+                                                  NewIntegerExpression(999))));
+    printf("\n");
     return 0;
 }

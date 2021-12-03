@@ -1,87 +1,67 @@
-enum expression_type
-{
-    ExpressionType_IntegerLiteral,
-};
+#include "ast.h"
 
-struct expression
+// TODO: better assertions
+void* AllocateNode(size_t size)
 {
-    expression_type Type;
-    union
-    {
-        struct
-        {
-            u64 Value;
-        } IntegerLiteral;
-    };
-};
-
-enum declaration_type
-{
-    DeclarationType_Variable,
-};
-
-struct declaration
-{
-    declaration_type Type;
-    char* Name;
-    u32 NameLength;
-    union
-    {
-        struct
-        {
-            char* Type; 
-            expression* Expr;
-        } VariableDeclaration;
-    };
-};
-
-// TODO: do we need this function? It's probably easier to just increment
-// pointer than to use this(???)
-void NextToken(token** Stream)
-{
-    (*Stream)++;
+    assert(size > 0);
+    void* Result = calloc(1, size);
+    assert(Result);
+    return Result;
 }
 
-bool MatchToken(token* Token, token_type Type)
+/* ---------- Expressions ---------- */
+
+expression* NewExpression(expression_type Type)
 {
-    if(Token->Type == Type)
-        return true;
-    else
-        return false;
+    expression* Result = (expression* )AllocateNode(sizeof(expression));
+    Result->Type = Type;
+    return Result;
 }
 
-// TODO: this function should check current token and assert that it 
-// has certain type, otherwise we delete our program
-void ExpectToken(token** Token, token_type ExpectedType)
+expression* NewBinaryExpression(token_type Op, expression* Left, expression* Right)
 {
-    if(MatchToken(*Token, ExpectedType))
-    {
-        NextToken(Token);
-    }
-    else
-    {
-        // TODO: FatalError should be printf with exit
-        // FatalError("Expect %s, got %s", ExpectedType, (*Token)->Type);
-        FatalError("In expect token");
-    }
+    // TODO:
+    // assert(IsBinary(Op));
+    expression* Result = NewExpression(ExpressionType_Binary);
+    Result->Binary.Op = Op;
+    Result->Binary.Left = Left;
+    Result->Binary.Right = Right;
+    return Result;
+}
+
+expression* NewIntegerExpression(u64 Value)
+{
+    expression* Result = NewExpression(ExpressionType_Integer);
+    Result->Integer.Value = Value;
+    return Result;
 }
 
 // TODO: for now just return IntegerLiteral
-expression* ParseExpression(token* TokenStream)
+expression* ParseIntegerExpression(token* TokenStream)
 {
-    expression* Result = (expression *)malloc(sizeof(*Result));
-    Result->Type = ExpressionType_IntegerLiteral;
-    Result->IntegerLiteral.Value = TokenStream->Integer;
+    expression* Result = NewIntegerExpression(TokenStream->Integer);
 
     return Result;
 }
 
+#if 0
+
+expression* ParseExpressionAdd(token* TokenStream)
+{
+}
+
+expression* ParseExpressionMul(token* TokenStream)
+{
+}
+#endif
+
 declaration* ParseVariableDeclaration(token* TokenStream)
 {
+    // TODO: refactor
     declaration* Result = (declaration* )malloc(sizeof(*Result));
     Result->Type = DeclarationType_Variable;
 
-    Result->VariableDeclaration.Type = TokenStream->Content;
+    Result->Variable.Type = TokenStream->Content;
     NextToken(&TokenStream);
 
     Result->Name = TokenStream->Content;
@@ -89,7 +69,7 @@ declaration* ParseVariableDeclaration(token* TokenStream)
     NextToken(&TokenStream);
 
     ExpectToken(&TokenStream, TokenType_Assign);
-    Result->VariableDeclaration.Expr = ParseExpression(TokenStream);
+    Result->Variable.Expr = ParseIntegerExpression(TokenStream);
 
     NextToken(&TokenStream);
     ExpectToken(&TokenStream, TokenType_Semicolon);
