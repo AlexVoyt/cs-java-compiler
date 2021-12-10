@@ -32,9 +32,41 @@ expression* NewBinaryExpression(token_type Op, expression* Left, expression* Rig
 expression* NewIntegerExpression(u64 Value)
 {
     expression* Result = NewExpression(ExpressionType_Integer);
-    Result->Integer.Value = Value;
+    Result->Integer = Value;
     return Result;
 }
+
+expression* NewFloatExpression(f64 Value)
+{
+    expression* Result = NewExpression(ExpressionType_Float);
+    Result->Float = Value;
+    return Result;
+}
+
+// TODO:
+#if 1
+expression* NewFunctionCallExpression(char* FunctionName, expression* E0 = 0,  expression* E1 = 0, expression* E2 = 0)
+{
+    expression* Result = NewExpression(ExpressionType_FunctionCall);
+    Result->FunctionCall.Name = FunctionName;
+    Result->FunctionCall.Params[0] = E0;
+    Result->FunctionCall.Params[1] = E1;
+    Result->FunctionCall.Params[2] = E2;
+    return Result;
+}
+#endif
+
+declaration* NewDeclaration(declaration_type Type)
+{
+    declaration* Result = (declaration* )AllocateNode(sizeof(declaration));
+    Result->Type = Type;
+    return Result;
+}
+
+
+
+
+
 
 // TODO: for now just return IntegerLiteral
 expression* ParseIntegerExpression(token* TokenStream)

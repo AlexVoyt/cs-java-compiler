@@ -175,7 +175,7 @@ token GetToken(tokenizer* Tokenizer)
             else if(IsAlpha(*C) || (*C == '_'))
             {
                 Result.Type = TokenType_Identifier;
-                while(*Tokenizer->At && 
+                while(*Tokenizer->At &&
                      (IsAlpha(*Tokenizer->At) || IsNumeric(*Tokenizer->At) || (*Tokenizer->At == '_')))
                 {
                     Tokenizer->At++;
@@ -187,7 +187,7 @@ token GetToken(tokenizer* Tokenizer)
                 Result.Type = TokenType_Int;
                 u32 Digit = (*C - '0');
                 u64 Number = Digit;
-                while(*Tokenizer->At && 
+                while(*Tokenizer->At &&
                      (IsNumeric(*Tokenizer->At)))
                 {
                     Digit = (*Tokenizer->At - '0');
@@ -208,7 +208,7 @@ token GetToken(tokenizer* Tokenizer)
 
     Result.Length = Tokenizer->At - C;
     return Result;
-} 
+}
 #undef FOLLOW_CHECK
 #undef FOLLOW_CHECK2
 
@@ -220,10 +220,10 @@ void PrintToken(token* Token)
     }
 
     if(Token->Type != TokenType_Int)
-        printf("Line: %3d, Type: %12s, Length: %3d, Content: %.*s\n", 
+        printf("Line: %3d, Type: %12s, Length: %3d, Content: %.*s\n",
                 Token->Line, TokenTypeStr(Token), Token->Length, Token->Length, Token->Content);
     else
-        printf("Line: %3d, Type: %12s, Length: %3d, Value: %ld\n",
+        printf("Line: %3d, Type: %12s, Length: %3d, Value: %llu\n",
                 Token->Line, TokenTypeStr(Token), Token->Length, Token->Integer);
 
     RESET_TERM_COLOR();
@@ -244,7 +244,7 @@ bool MatchToken(token* Token, token_type Type)
         return false;
 }
 
-// TODO: this function should check current token and assert that it 
+// TODO: this function should check current token and assert that it
 // has certain type, otherwise we delete our program
 void ExpectToken(token** Token, token_type ExpectedType)
 {

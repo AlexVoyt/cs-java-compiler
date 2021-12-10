@@ -1,2 +1,4 @@
-compiler
+.gitignore.swp
+compiler*
+main.obj
 *.un~

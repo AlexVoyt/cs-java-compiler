@@ -16,6 +16,9 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
+typedef float f32;
+typedef double f64;
+
 const u64 UnsignedLongMax = 9223372036854775807;
 void FatalError(const char* ErrorMsg)
 {
@@ -30,6 +33,7 @@ void FatalError(const char* ErrorMsg)
 
 #define str(x) #x
 #define xstr(x) str(x)
+#define ArrayCount(x) sizeof((x))/sizeof((x)[0])
 
 
 // TODO: error handling
@@ -60,6 +64,36 @@ struct keyword_table
 global_variable keyword_table KeywordTable;
 #endif
 
+void TestExpressionPrinting()
+{
+    expression* Expressions[] =
+    {
+        NewBinaryExpression(TokenType_Plus, NewIntegerExpression(123), NewBinaryExpression(TokenType_Asterisk, NewIntegerExpression(666), NewIntegerExpression(999))),
+        NewBinaryExpression(TokenType_Plus, NewBinaryExpression(TokenType_Asterisk, NewIntegerExpression(111), NewIntegerExpression(222)), NewBinaryExpression(TokenType_Plus, NewIntegerExpression(333), NewIntegerExpression(444))),
+        NewBinaryExpression(TokenType_Plus, NewFloatExpression(3.14), NewFloatExpression(2.71)),
+        NewFunctionCallExpression("Factorial", NewIntegerExpression(23)),
+        NewFunctionCallExpression("Fib", NewIntegerExpression(23),
+                                         NewIntegerExpression(42),
+                                         NewBinaryExpression(TokenType_Plus, NewIntegerExpression(12), NewFloatExpression(0.555))),
+    };
+
+    for(u32 ExpressionIndex = 0; ExpressionIndex < ArrayCount(Expressions); ExpressionIndex++)
+    {
+        PrintNewLine(Expressions[ExpressionIndex]);
+    }
+
+}
+
+void TestDeclarationPrinting()
+{
+#if 0
+    declaration* Declarations[] =
+    {
+        NewVariableDeclaration()
+    }
+#endif
+}
+
 
 using namespace std;
 int main()
@@ -82,27 +116,11 @@ int main()
 
     }
 
-#if 0
-    for(token Token : Tokens)
-        if(Token.Type == TokenType_Int)
-            PrintToken(&Token);
-#endif
+    TestExpressionPrinting();
+    TestDeclarationPrinting();
 
-    declaration* Decl = ParseVariableDeclaration(Tokens.data());
 
-    printf("\n\n\n\n");
-    Print(Decl);
-#if 0
-    Print(NewBinaryExpression(TokenType_Plus, 
-                              NewIntegerExpression(123), 
-                              NewIntegerExpression(392)));
-#endif
 
-    Print(NewBinaryExpression(TokenType_Plus, 
-                              NewIntegerExpression(123), 
-                              NewBinaryExpression(TokenType_Asterisk, 
-                                                  NewIntegerExpression(666),
-                                                  NewIntegerExpression(999))));
     printf("\n");
     return 0;
 }
