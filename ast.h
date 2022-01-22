@@ -12,6 +12,7 @@ enum expression_type
     /* ExpressionType_Field, */ // TODO: do we have structs? Methods are calls or fields?
     ExpressionType_Unary,
     ExpressionType_Binary,
+    ExpressionType_Paren,
 };
 
 struct expression_list
@@ -25,12 +26,18 @@ struct expression
     {
         u64 Integer;
         f64 Float;
-        char* Name;
+
+        struct
+        {
+            char* Ident;
+            u32 Length;
+        } Name;
 
         struct
         {
             char* Name;
-            expression* Params[3]; // TODO: for testing purposes
+            u32 Length;
+            array<expression*> Arguments;
         } FunctionCall;
 
         struct
@@ -45,6 +52,11 @@ struct expression
             expression* Left;
             expression* Right;
         } Binary;
+
+        struct
+        {
+            expression* Expression;
+        } Paren;
 
     };
 };
@@ -85,7 +97,7 @@ struct declaration
         struct
         {
             char* ReturnType;
-            function_params* Params;
+            array<function_params> Params;
         } Function;
 
         struct
@@ -109,6 +121,12 @@ struct statement_list
     statement* Last;
 };
 
+struct else_if
+{
+    expression* Condition;
+    array<statement*> StatementBlock;
+};
+
 struct statement
 {
     statement_type Type;
@@ -119,20 +137,16 @@ struct statement
         struct
         {
             expression* Condition;
-            statement_list Statements;
-            // TODO: else if's
+            array<statement*> ThenBlock;
+            array<statement*> ElseBlock;
+            array<else_if> ElseIfs;
         } If;
 
         struct
         {
             expression* Condition;
             statement_list Statements;
-        } While;
-
-        struct
-        {
-            // TODO: actually same fields as While, should we use While struct or duplicate?
-        } DoWhile;
+        } While; // NOTE: also do_while
 
         struct
         {

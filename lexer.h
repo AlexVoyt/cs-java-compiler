@@ -76,8 +76,10 @@ enum token_type
     TokenType_BitAnd,
     TokenType_BitOr,
     TokenType_BitXor,
+    TokenType_BitNot,
 
     TokenType_Int,
+    TokenType_Float,
     TokenType_Identifier,
 };
 

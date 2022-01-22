@@ -1,4 +1,5 @@
-.gitignore.swp
+*.swp
+*.pdb
 compiler*
 main.obj
 *.un~

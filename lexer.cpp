@@ -57,24 +57,24 @@ const char* TokenTypeStr(token_type Type)
         case(TokenType_Dot): {return "Dot";} break;
         case(TokenType_Apostrophe): {return "Apostrophe";} break;
         case(TokenType_Quote): {return "Quote";} break;
-        case(TokenType_Semicolon): {return "Semicolon";} break;
-        case(TokenType_Colon): {return "Colon";} break;
-        case(TokenType_Plus): {return "Plus";} break;
-        case(TokenType_Minus): {return "Minus";} break;
-        case(TokenType_Asterisk): {return "Asterisk";} break;
-        case(TokenType_Slash): {return "Slash";} break;
-        case(TokenType_Percent): {return "Percent";} break;
-        case(TokenType_Increment): {return "Increment";} break;
-        case(TokenType_Decrement): {return "Decrement";} break;
-        case(TokenType_Greater): {return "Greater";} break;
-        case(TokenType_Lesser): {return "Lesser";} break;
-        case(TokenType_Equal): {return "Equal";} break;
-        case(TokenType_GEQ): {return "GEQ";} break;
-        case(TokenType_LEQ): {return "LEQ";} break;
-        case(TokenType_NEQ): {return "NEQ";} break;
-        case(TokenType_LogicalAnd): {return "LogicalAnd";} break;
-        case(TokenType_LogicalOr): {return "LogicalOr";} break;
-        case(TokenType_LogicalNot): {return "LogicalNot";} break;
+        case(TokenType_Semicolon): {return ";";} break;
+        case(TokenType_Colon): {return ":";} break;
+        case(TokenType_Plus): {return "+";} break;
+        case(TokenType_Minus): {return "-";} break;
+        case(TokenType_Asterisk): {return "*";} break;
+        case(TokenType_Slash): {return "/";} break;
+        case(TokenType_Percent): {return "%";} break;
+        case(TokenType_Increment): {return "++";} break;
+        case(TokenType_Decrement): {return "--";} break;
+        case(TokenType_Greater): {return ">";} break;
+        case(TokenType_Lesser): {return "<";} break;
+        case(TokenType_Equal): {return "==";} break;
+        case(TokenType_GEQ): {return ">=";} break;
+        case(TokenType_LEQ): {return "<=";} break;
+        case(TokenType_NEQ): {return "!=";} break;
+        case(TokenType_LogicalAnd): {return "&&";} break;
+        case(TokenType_LogicalOr): {return "||";} break;
+        case(TokenType_LogicalNot): {return "!=";} break;
         case(TokenType_Assign): {return "Assignment";} break;
         case(TokenType_PlusAssign): {return "PlusAssign";} break;
         case(TokenType_MinusAssign): {return "MinusAssign";} break;
@@ -83,14 +83,14 @@ const char* TokenTypeStr(token_type Type)
         case(TokenType_ModAssign): {return "ModAssign";} break;
         case(TokenType_ShiftLeft): {return "ShiftLeft";} break;
         case(TokenType_ShiftRight): {return "ShiftRight";} break;
-        case(TokenType_BitAnd): {return "BitAnd";} break;
-        case(TokenType_BitOr): {return "BitOr";} break;
-        case(TokenType_BitXor): {return "BitXor";} break;
+        case(TokenType_BitAnd): {return "&";} break;
+        case(TokenType_BitOr): {return "|";} break;
+        case(TokenType_BitXor): {return "^";} break;
         case(TokenType_Int): {return "Int";} break;
         case(TokenType_Identifier): {return "Identifier";} break;
         case(TokenType_Backslash): {return "Backslash";} break;
 
-        default: {InvalidCodePath; return "Invalid code path";} break;
+        default: {InvalidCodePath("Token to str"); return "Invalid code path";} break;
     }
 }
 
@@ -244,6 +244,39 @@ bool MatchToken(token* Token, token_type Type)
         return false;
 }
 
+// NOTE: left string is length based, right is null terminated
+bool IsEqual(char* Left, u32 LeftLength, char* Right)
+{
+    bool Result = true;
+    u32 Index = 0;
+    for(; Index < LeftLength; Index++)
+    {
+        if(Left[Index] == Right[Index])
+        {
+        }
+        else
+        {
+            Result = false;
+            break;
+        }
+    }
+
+    if(Right[Index])
+    {
+        Result = false;
+    }
+
+    return Result;
+}
+
+bool MatchKeyword(token* Token, char* Keyword)
+{
+    if((Token->Type == TokenType_Identifier) && IsEqual(Token->Content, Token->Length, Keyword))
+        return true;
+    else
+        return false;
+}
+
 // TODO: this function should check current token and assert that it
 // has certain type, otherwise we delete our program
 void ExpectToken(token** Token, token_type ExpectedType)
@@ -255,10 +288,31 @@ void ExpectToken(token** Token, token_type ExpectedType)
     else
     {
         // TODO: FatalError should be printf with exit
-        // FatalError("Expect %s, got %s", ExpectedType, (*Token)->Type);
-        FatalError("In expect token");
+        printf("In line %d: expect %s, got %s",
+                (*Token)->Line,
+                TokenTypeStr(ExpectedType),
+                TokenTypeStr((*Token)->Type));
+        exit(1); // TODO: skip tokens
+        // FatalError("In expect token");
     }
 }
 
+array<token> Tokenize(const char* Source)
+{
+    array<token> Result = {};
+    tokenizer Tokenizer;
+    Tokenizer.At = (char* )Source;
+    Tokenizer.Line = 1;
+    bool Lexing = true;
+    while(Lexing)
+    {
+        token Token = GetToken(&Tokenizer);
+        if(Token.Type == TokenType_EndOfStream)
+            Lexing = false;
+        AddToArray(&Result, Token);
+    }
+
+    return Result;
+}
 
 #endif /* LEXER_CPP */

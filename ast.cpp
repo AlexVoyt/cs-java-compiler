@@ -18,6 +18,14 @@ expression* NewExpression(expression_type Type)
     return Result;
 }
 
+expression* NewUnaryExpression(token_type Op, expression* Expression)
+{
+    expression* Result = NewExpression(ExpressionType_Unary);
+    Result->Unary.Op = Op;
+    Result->Unary.Expression = Expression;
+    return Result;
+}
+
 expression* NewBinaryExpression(token_type Op, expression* Left, expression* Right)
 {
     // TODO:
@@ -26,6 +34,21 @@ expression* NewBinaryExpression(token_type Op, expression* Left, expression* Rig
     Result->Binary.Op = Op;
     Result->Binary.Left = Left;
     Result->Binary.Right = Right;
+    return Result;
+}
+
+expression* NewParenExpression(expression* Expression)
+{
+    expression* Result = NewExpression(ExpressionType_Paren);
+    Result->Paren.Expression = Expression;
+    return Result;
+}
+
+expression* NewNameExpression(char* Name, u32 Length)
+{
+    expression* Result = NewExpression(ExpressionType_Name);
+    Result->Name.Ident = Name;
+    Result->Name.Length = Length;
     return Result;
 }
 
@@ -43,15 +66,16 @@ expression* NewFloatExpression(f64 Value)
     return Result;
 }
 
-// TODO:
 #if 1
-expression* NewFunctionCallExpression(char* FunctionName, expression* E0 = 0,  expression* E1 = 0, expression* E2 = 0)
+expression* NewFunctionCallExpression(expression* Expression, array<expression*> Arguments)
 {
+    assert(Expression->Type == ExpressionType_Name);
+
     expression* Result = NewExpression(ExpressionType_FunctionCall);
-    Result->FunctionCall.Name = FunctionName;
-    Result->FunctionCall.Params[0] = E0;
-    Result->FunctionCall.Params[1] = E1;
-    Result->FunctionCall.Params[2] = E2;
+    Result->FunctionCall.Name = Expression->Name.Ident;
+    Result->FunctionCall.Length = Expression->Name.Length;
+    Result->FunctionCall.Arguments = Arguments;
+
     return Result;
 }
 #endif
@@ -63,30 +87,7 @@ declaration* NewDeclaration(declaration_type Type)
     return Result;
 }
 
-
-
-
-
-
-// TODO: for now just return IntegerLiteral
-expression* ParseIntegerExpression(token* TokenStream)
-{
-    expression* Result = NewIntegerExpression(TokenStream->Integer);
-
-    return Result;
-}
-
 #if 0
-
-expression* ParseExpressionAdd(token* TokenStream)
-{
-}
-
-expression* ParseExpressionMul(token* TokenStream)
-{
-}
-#endif
-
 declaration* ParseVariableDeclaration(token* TokenStream)
 {
     // TODO: refactor
@@ -105,6 +106,28 @@ declaration* ParseVariableDeclaration(token* TokenStream)
 
     NextToken(&TokenStream);
     ExpectToken(&TokenStream, TokenType_Semicolon);
+
+    return Result;
+}
+#endif
+
+statement* NewStatement(statement_type Type)
+{
+    statement* Result = (statement* )AllocateNode(sizeof(statement));
+    Result->Type = Type;
+    return Result;
+}
+
+statement* NewIfStatement(expression* Condition,
+                          array<statement*> ThenBlock,
+                          array<statement*> ElseBlock,
+                          array<else_if> ElseIfs)
+{
+    statement* Result = NewStatement(StatementType_If);
+    Result->If.Condition = Condition;
+    Result->If.ThenBlock = ThenBlock;
+    Result->If.ElseBlock = ElseBlock;
+    Result->If.ElseIfs = ElseIfs;
 
     return Result;
 }

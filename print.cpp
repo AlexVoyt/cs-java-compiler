@@ -11,19 +11,35 @@ void PrintIndent(u32 IndentLevel)
 
 void Print(expression* Expr, u32 IndentLevel = 0)
 {
-    assert(Expr);
+    assert(Expr && "Print Expr");
     switch(Expr->Type)
     {
         case ExpressionType_Binary:
         {
             // TODO:
-            printf("[%s ", TokenTypeStr(Expr->Binary.Op));
+            printf("(%s ", TokenTypeStr(Expr->Binary.Op));
             // PrintIndent(IndentLevel + 1);
             Print(Expr->Binary.Left, IndentLevel + 1);
             printf(" ");
             // PrintIndent(IndentLevel + 1);
             Print(Expr->Binary.Right, IndentLevel + 1);
-            printf("]");
+            printf(")");
+        } break;
+
+        case ExpressionType_Unary:
+        {
+            // TODO:
+            printf("(%s ", TokenTypeStr(Expr->Binary.Op));
+            // PrintIndent(IndentLevel + 1);
+            Print(Expr->Unary.Expression, IndentLevel + 1);
+            printf(")");
+        } break;
+
+        case ExpressionType_Paren:
+        {
+            // TODO:
+            // PrintIndent(IndentLevel + 1);
+            Print(Expr->Paren.Expression, IndentLevel + 1);
         } break;
 
         case ExpressionType_Integer:
@@ -36,20 +52,62 @@ void Print(expression* Expr, u32 IndentLevel = 0)
             printf("%f", Expr->Float);
         } break;
 
+        case ExpressionType_Name:
+        {
+            printf("%.*s", Expr->Name.Length, Expr->Name.Ident);
+        } break;
+
         case ExpressionType_FunctionCall:
         {
-            printf("[Called %s", Expr->FunctionCall.Name);
-            // TODO: change once we decide what should we use as function params
-            for(u32 i = 0; i < 3; i++)
+            printf("(");
+            printf("%.*s", Expr->FunctionCall.Length, Expr->FunctionCall.Name);
+
+            for(u32 ArgumentIndex = 0; ArgumentIndex < Expr->FunctionCall.Arguments.Size; ArgumentIndex++)
             {
-                if(Expr->FunctionCall.Params[i])
-                {
-                    printf(" ");
-                    Print(Expr->FunctionCall.Params[i]);
-                }
+                printf(" ");
+                Print(*(Expr->FunctionCall.Arguments.Data + ArgumentIndex));
             }
-            printf("]");
+            printf(")");
         } break;
+    }
+}
+
+void Print(declaration* Decl)
+{
+    assert(Decl && "Print Decl");
+    switch(Decl->Type)
+    {
+        case DeclarationType_Variable:
+        {
+            printf("[Variable %.*s ", Decl->NameLength, Decl->Name);
+            Print(Decl->Variable.Expr);
+            printf("]\n");
+        } break;
+
+        default:
+        {
+            InvalidCodePath("Print declaration");
+        }
+    }
+}
+
+void Print(statement* Stmt)
+{
+    assert(Stmt);
+    switch(Stmt->Type)
+    {
+        case StatementType_If:
+        {
+            printf("(if ");
+            Print(Stmt->If.Condition);
+            printf(")");
+        } break;
+
+        default:
+        {
+            InvalidCodePath("Print statement");
+        }
+
     }
 }
 
@@ -59,16 +117,15 @@ void PrintNewLine(expression* Expr)
     printf("\n");
 }
 
-void Print(declaration* Decl)
+void PrintNewLine(statement* Stmt)
 {
-    assert(Decl);
-    switch(Decl->Type)
-    {
-        case DeclarationType_Variable:
-        {
-            printf("[Variable %.*s ", Decl->NameLength, Decl->Name);
-            Print(Decl->Variable.Expr);
-            printf("]\n");
-        } break;
-    }
+    Print(Stmt);
+    printf("\n");
 }
+
+void PrintNewLine(declaration* Decl)
+{
+    Print(Decl);
+    printf("\n");
+}
+
