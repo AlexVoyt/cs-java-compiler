@@ -86,7 +86,7 @@ void TestStatementParsing()
 {
     char* Statements[] =
     {
-        "if(Value == 15) {23+4;}",
+        "if(Value == 15) {int Value = 20; 23+4;}",
     };
 
     for(u32 StatementIndex = 0; StatementIndex < ArrayCount(Statements); StatementIndex++)

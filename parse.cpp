@@ -233,6 +233,39 @@ expression* ParseExpression(token** TokenStream)
 {
     return ParseExpressionLogicalOr(TokenStream);
 }
+/*      Declarations      */
+
+declaration* ParseDeclaration(token** TokenStream);
+
+declaration* ParseVariableDeclaration(token** TokenStream)
+{
+    u32 TypeLength = (*TokenStream)->Length;
+    char* Type = (*TokenStream)->Content;
+    NextToken(TokenStream);
+
+    u32 NameLength = (*TokenStream)->Length;
+    char* Name = (*TokenStream)->Content;
+    NextToken(TokenStream);
+
+    expression* Expression = 0;
+    if(!MatchToken(*TokenStream, TokenType_Semicolon))
+    {
+        ExpectToken(TokenStream, TokenType_Assign);
+        Expression = ParseExpression(TokenStream);
+    }
+
+    declaration* Result = NewVariableDeclaration(TypeLength, Type, NameLength, Name, Expression);
+
+    return Result;
+}
+
+declaration* ParseDeclaration(token** TokenStream)
+{
+    declaration* Result = 0;
+
+
+    return Result;
+}
 
 /*      Statements      */
 
@@ -286,8 +319,36 @@ statement* ParseIfStatement(token** TokenStream)
     return Result;
 }
 
+statement* ParseExpressionStatement(token** TokenStream)
+{
+    statement* Result = 0;
+    Result = NewExpressionStatement(ParseExpression(TokenStream));
+
+    return Result;
+}
+
+statement* ParseDeclarationStatement(token** TokenStream)
+{
+    statement* Result = 0;
+    Result = NewDeclarationStatement(ParseVariableDeclaration(TokenStream));
+
+    return Result;
+}
+
 statement* ParseSimpleStatement(token** TokenStream)
 {
+    statement* Result = 0;
+
+    if(MatchType(*TokenStream))
+    {
+        Result = ParseDeclarationStatement(TokenStream);
+    }
+    else
+    {
+        Result = ParseExpressionStatement(TokenStream);
+    }
+
+    return Result;
 }
 
 statement* ParseStatement(token** TokenStream)

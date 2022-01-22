@@ -80,7 +80,7 @@ void Print(declaration* Decl)
         case DeclarationType_Variable:
         {
             printf("[Variable %.*s ", Decl->NameLength, Decl->Name);
-            Print(Decl->Variable.Expr);
+            Print(Decl->Variable.Expression);
             printf("]\n");
         } break;
 
@@ -100,8 +100,35 @@ void Print(statement* Stmt)
         {
             printf("(if ");
             Print(Stmt->If.Condition);
+            printf(" (then-block ");
+            for(u32 StatementIndex = 0; StatementIndex < Stmt->If.ThenBlock.Size; StatementIndex++)
+            {
+                Print(*(Stmt->If.ThenBlock.Data + StatementIndex));
+            }
+            printf(")");
             printf(")");
         } break;
+
+        case StatementType_Declaration:
+        {
+            printf("(var ");
+            printf("%.*s %.*s", Stmt->Declaration->Variable.TypeLength, Stmt->Declaration->Variable.Type,
+                                Stmt->Declaration->NameLength, Stmt->Declaration->Name);
+            if(Stmt->Declaration->Variable.Expression)
+            {
+                printf("(init-expr ");
+                Print(Stmt->Declaration->Variable.Expression);
+                printf(")");
+            }
+            printf(")");
+        }
+
+        case StatementType_Expression:
+        {
+            printf("(expr ");
+            Print(Stmt->Expression);
+            printf(")");
+        }
 
         default:
         {

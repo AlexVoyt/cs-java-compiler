@@ -118,6 +118,21 @@ statement* NewStatement(statement_type Type)
     return Result;
 }
 
+statement* NewExpressionStatement(expression* Expression)
+{
+    statement* Result = NewStatement(StatementType_Expression);
+    Result->Expression = Expression;
+    return Result;
+}
+
+statement* NewDeclarationStatement(declaration* Declaration)
+{
+    statement* Result = NewStatement(StatementType_Declaration);
+    Result->Declaration = Declaration;
+
+    return Result;
+}
+
 statement* NewIfStatement(expression* Condition,
                           array<statement*> ThenBlock,
                           array<statement*> ElseBlock,
@@ -128,6 +143,27 @@ statement* NewIfStatement(expression* Condition,
     Result->If.ThenBlock = ThenBlock;
     Result->If.ElseBlock = ElseBlock;
     Result->If.ElseIfs = ElseIfs;
+
+    return Result;
+}
+
+declaration* NewDeclaration(declaration_type Type, u32 NameLength, char* Name)
+{
+    declaration* Result = (declaration* )AllocateNode(sizeof(declaration));
+    Result->Type = Type;
+    Result->NameLength = NameLength;
+    Result->Name = Name;
+    return Result;
+}
+
+declaration* NewVariableDeclaration(u32 TypeLength, char* Type,
+                                    u32 NameLength, char* Name,
+                                    expression* Expression)
+{
+    declaration* Result = NewDeclaration(DeclarationType_Variable, NameLength, Name);
+    Result->Variable.TypeLength = TypeLength;
+    Result->Variable.Type = Type;
+    Result->Variable.Expression = Expression;
 
     return Result;
 }

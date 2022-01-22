@@ -90,8 +90,9 @@ struct declaration
     {
         struct
         {
+            u32 TypeLength;
             char* Type;
-            expression* Expr;
+            expression* Expression;
         } Variable;
 
         struct
@@ -109,6 +110,8 @@ struct declaration
 
 enum statement_type
 {
+    StatementType_Expression,
+    StatementType_Declaration,
     StatementType_If,
     StatementType_While,
     StatementType_DoWhile,
@@ -134,6 +137,7 @@ struct statement
     {
         expression* Expression;
         declaration* Declaration;
+
         struct
         {
             expression* Condition;

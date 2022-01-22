@@ -277,6 +277,24 @@ bool MatchKeyword(token* Token, char* Keyword)
         return false;
 }
 
+bool MatchType(token* Token)
+{
+    bool Result = false;
+    if(Token->Type == TokenType_Identifier)
+    {
+        Result = IsEqual(Token->Content, Token->Length, "int") ||
+                 IsEqual(Token->Content, Token->Length, "long") ||
+                 IsEqual(Token->Content, Token->Length, "short") ||
+                 IsEqual(Token->Content, Token->Length, "char") ||
+                 IsEqual(Token->Content, Token->Length, "bool") ||
+                 IsEqual(Token->Content, Token->Length, "double") ||
+                 IsEqual(Token->Content, Token->Length, "float") ||
+                 IsEqual(Token->Content, Token->Length, "byte");
+    }
+
+    return Result;
+}
+
 // TODO: this function should check current token and assert that it
 // has certain type, otherwise we delete our program
 void ExpectToken(token** Token, token_type ExpectedType)
