@@ -12,7 +12,12 @@ void FatalError(const char* ErrorMsg)
 char* ReadFile(const char* Filename)
 {
     char* Result = 0;
-    FILE* File = fopen(Filename, "r");
+    FILE* File = fopen(Filename, "rb");
+    if(!File)
+    {
+        FatalError("Could not open file");
+        exit(2);
+    }
     assert(File);
 
     fseek(File, 0, SEEK_END);

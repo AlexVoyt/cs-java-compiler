@@ -146,6 +146,57 @@ statement* NewIfStatement(expression* Condition,
 
     return Result;
 }
+statement* NewForStatement(statement* Init,
+                           expression* Condition,
+                           statement* Next,
+                           array<statement*> Statements)
+{
+    statement* Result = NewStatement(StatementType_For);
+    Result->For.Init = Init;
+    Result->For.Condition = Condition;
+    Result->For.Next = Next;
+    Result->For.Statements = Statements;
+
+    return Result;
+}
+
+statement* NewWhileStatement(expression* Condition, array<statement*> Statements)
+{
+    statement* Result = NewStatement(StatementType_While);
+    Result->While.Condition = Condition;
+    Result->While.Statements = Statements;
+
+    return Result;
+}
+
+statement* NewReturnStatement(expression* Expression)
+{
+    statement* Result = NewStatement(StatementType_Return);
+    Result->Return.Expression = Expression;
+
+    return Result;
+}
+
+statement* NewDoWhileStatement(expression* Condition, array<statement*> Statements)
+{
+    statement* Result = NewStatement(StatementType_DoWhile);
+    Result->While.Condition = Condition;
+    Result->While.Statements = Statements;
+
+    return Result;
+}
+
+statement* NewAssignStatement(expression* Left,
+                              token_type AssignOp,
+                              expression* Right)
+{
+    statement* Result = NewStatement(StatementType_Assign);
+    Result->Assign.Left = Left;
+    Result->Assign.Op = AssignOp;
+    Result->Assign.Right = Right;
+
+    return Result;
+}
 
 declaration* NewDeclaration(declaration_type Type, u32 NameLength, char* Name)
 {
@@ -164,6 +215,37 @@ declaration* NewVariableDeclaration(u32 TypeLength, char* Type,
     Result->Variable.TypeLength = TypeLength;
     Result->Variable.Type = Type;
     Result->Variable.Expression = Expression;
+
+    return Result;
+}
+
+declaration* NewFunctionDeclaration(u32 NameLength, char* Name,
+                                    access_modifier Modifier, u32 ReturnTypeLength,
+                                    char* ReturnType, array<function_param> Params,
+                                    array<statement*> Statements)
+{
+    declaration* Result = NewDeclaration(DeclarationType_Function, NameLength, Name);
+    Result->Function.Modifier = Modifier;
+    Result->Function.ReturnTypeLength = ReturnTypeLength;
+    Result->Function.ReturnType = ReturnType;
+    Result->Function.Params = Params;
+    Result->Function.Statements = Statements;
+
+    return Result;
+}
+
+declaration* NewClassDeclaration(u32 NameLength, char* Name,
+                                    array<declaration*> Functions)
+{
+    declaration* Result = NewDeclaration(DeclarationType_Class, NameLength, Name);
+    Result->Class.Functions = Functions;
+
+    return Result;
+}
+
+declaration* NewUsingDeclaration(u32 NameLength, char* Name)
+{
+    declaration* Result = NewDeclaration(DeclarationType_Using, NameLength, Name);
 
     return Result;
 }

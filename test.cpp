@@ -1,8 +1,7 @@
 void TestLexer()
 {
 #if 0
-    // const char* Source = " a3 3a. , \' _ \"* \\ ___ _ds2_ a s ; 732 821 0229 32:3 a82_ [}]asd public 233213093298x2140;3(230)12";
-    const char* Source = ReadFile("test.cs");
+    const char* Source = " a3 3a. , \' _ \"* \\ ___ _ds2_ a s ; 732 821 0229 32:3 a82_ [}]asd public 233213093298x2140;3(230)12";
     // printf("Source string: %s\n", Source);
 
     std::vector<token> Tokens;
@@ -36,16 +35,6 @@ void TestExpressionPrinting()
 
 }
 
-void TestDeclarationPrinting()
-{
-#if 0
-    declaration* Declarations[] =
-    {
-        NewVariableDeclaration()
-    }
-#endif
-}
-
 void TestExpressionParsing()
 {
     char* Expressions[] =
@@ -57,15 +46,12 @@ void TestExpressionParsing()
          "20",
          "Value",
          "-23 | 20 - (++0)",
-        // "(23 | 20",
         "(23 | 20) * 100 && 64 + 2 ^ (--17 - 89)",
-        // "2++", // TODO: postdecrement
         "2 + 2",
         "2 + 2 * 5",
         "2 * 2 + 5",
         "(2 + 2) * 5",
         "(13)",
-        // TODO(float) "7.32 > 5 <= 90",
         "-223 == 7",
         "-22",
         "223 == 7 + 5",
@@ -86,7 +72,74 @@ void TestStatementParsing()
 {
     char* Statements[] =
     {
-        "if(Value == 15) {int Value = 20; 23+4;}",
+        "if(Value == 15) \
+        {\
+            X = 13 << Y;\
+        }",
+
+        "if(Value == 15) \
+        {\
+            Fib(Y-X);\
+        }\
+        else if (Z != false) \
+        {\
+        }\
+        else\
+        {\
+            Fact(123);\
+        }",
+
+        "if(Value == 15) \
+        {\
+            Fib(Y-X);\
+        }\
+        else if (Z == true) \
+        {\
+        }\
+        else if (Fact(14141)) \
+        {\
+        }\
+        else\
+        {\
+            Fact(123);\
+        }",
+
+        "if(Value == 15)\
+        {\
+            Fib(Y-X);\
+            int X = 20;\
+            int Y = X+15*Value;\
+            float Z;\
+            X = Abs(-321);\
+        }",
+
+        "for(int Index = 0; Index < 100; ++Index)\
+        {\
+            X += Index;\
+        }",
+
+        "for(Index = 0; Index < 100; ++Index)\
+        {\
+            X += Index;\
+        }",
+
+        "for(Index = 0; Index < 100; Index += 3)\
+        {\
+            X += Index;\
+        }",
+
+        "while(Index >= 124)\
+        {\
+            SomeFunction();\
+            Index -= AnotherFunction();\
+        }",
+
+        "do\
+        {\
+            SomeFunction();\
+            Index -= AnotherFunction();\
+        } while(Index >= 124);",
+
     };
 
     for(u32 StatementIndex = 0; StatementIndex < ArrayCount(Statements); StatementIndex++)
@@ -98,10 +151,114 @@ void TestStatementParsing()
     }
 }
 
+void TestDeclarationParsing()
+{
+    char* Declarations[] =
+    {
+        "class Main\
+        {\
+            public void EndlessLoop() \
+            {\
+                int Index = 100 + 90;\
+                long Variable = 3;\
+                bool Hm;\
+                while(Index > 0) \
+                {\
+                    Variable *= Index;\
+                }\
+            }\
+            private long Fact(int n) \
+            {\
+                if(n == 1) \
+                {\
+                    return 1;\
+                }\
+                return n*Fact(n-1);\
+            }\
+        }",
+
+        "class Another\
+        {\
+            private int GetElement(int Index)\
+            {\
+                return (Index >> 13);\
+            }\
+        }",
+        "using System;",
+        "using System.Math;",
+        "using System.Console.Something.Class;",
+    };
+
+    for(u32 DeclarationIndex = 0; DeclarationIndex < ArrayCount(Declarations); DeclarationIndex++)
+    {
+        array<token> Tokens = Tokenize(Declarations[DeclarationIndex]);
+        token* TokenStream = Tokens.Data;
+        declaration* Declaration = ParseDeclaration(&TokenStream);
+        PrintNewLine(Declaration);
+    }
+}
+
+void TestCompleteProgram()
+{
+    char* Programs[] =
+    {
+        "using System;\
+        using System.Math;\
+        using System.Console.Something.Class;\
+        class Main\
+        {\
+            public void EndlessLoop() \
+            {\
+                int Index = 100 + 90;\
+                long Variable = 3;\
+                bool Hm;\
+                while(Index > 0) \
+                {\
+                    Variable *= Index;\
+                }\
+            }\
+            private long Fact(int n) \
+            {\
+                if(n == 1) \
+                {\
+                    return 1;\
+                }\
+                return n*Fact(n-1);\
+            }\
+        }\
+        class Another\
+        {\
+            private int GetElement(int Index)\
+            {\
+                return (Index >> 13);\
+            }\
+        }",
+    };
+
+    for(u32 ProgramIndex = 0; ProgramIndex < ArrayCount(Programs); ProgramIndex++)
+    {
+        array<token> Tokens = Tokenize(Programs[ProgramIndex]);
+        token* TokenStream = Tokens.Data;
+        array<declaration*> Program;
+        while(!MatchToken(TokenStream, TokenType_EndOfStream))
+        {
+            AddToArray(&Program, ParseDeclaration(&TokenStream));
+        }
+
+        for(u32 DeclarationIndex = 0; DeclarationIndex < Program.Size; DeclarationIndex++)
+        {
+            PrintNewLine(*(Program.Data + DeclarationIndex));
+        }
+    }
+
+}
+
 void TestParsing()
 {
     TestExpressionParsing();
     TestStatementParsing();
+    TestDeclarationParsing();
+    TestCompleteProgram();
 }
 
 

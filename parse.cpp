@@ -1,4 +1,6 @@
 expression* ParseExpression(token** TokenStream);
+statement* ParseStatement(token** TokenStream);
+array<statement*> ParseStatementBlock(token** TokenStream);
 
 expression* ParseExpressionOperand(token** TokenStream)
 {
@@ -27,6 +29,7 @@ expression* ParseExpressionOperand(token** TokenStream)
     }
     else
     {
+        FatalError("Error in ParseExpressionOperand: expected expression, but none find");
         assert(0);
     }
 
@@ -259,11 +262,178 @@ declaration* ParseVariableDeclaration(token** TokenStream)
     return Result;
 }
 
+array<function_param> ParseFunctionParams(token** TokenStream)
+{
+    array<function_param> Result = {};
+    function_param Param = {};
+
+    ExpectToken(TokenStream, TokenType_LParen);
+    while(!MatchToken(*TokenStream, TokenType_EndOfStream) &&
+          !MatchToken(*TokenStream, TokenType_RParen))
+    {
+        if(MatchType(*TokenStream))
+        {
+            Param.TypeLength = (*TokenStream)->Length;
+            Param.Type = (*TokenStream)->Content;
+            NextToken(TokenStream);
+
+            if((*TokenStream)->Type != TokenType_Identifier)
+            {
+                FatalError("Expected paramaeter name in function parameter list");
+            }
+
+            Param.NameLength = (*TokenStream)->Length;
+            Param.Name = (*TokenStream)->Content;
+            NextToken(TokenStream);
+
+            if(!MatchToken(*TokenStream, TokenType_RParen))
+            {
+                ExpectToken(TokenStream, TokenType_Comma);
+                if(MatchToken(*TokenStream, TokenType_RParen))
+                {
+                    FatalError("Expected parameter after comma in function parameter list");
+                }
+            }
+        }
+        else
+        {
+            FatalError("Expected type name in function parameter list");
+        }
+        AddToArray(&Result, Param);
+    }
+    ExpectToken(TokenStream, TokenType_RParen);
+
+    return Result;
+}
+
+declaration* ParseFunctionDeclaration(token** TokenStream)
+{
+    declaration* Result = 0;
+
+    u32 NameLength = 0;
+    char* Name = 0;
+    access_modifier Modifier;
+    u32 ReturnTypeLength = 0;
+    char* ReturnType = 0;
+    array<function_param> Params = {};
+    array<statement*> Statements = {};
+
+    bool IsPublic = IsEqual((*TokenStream)->Content, (*TokenStream)->Length, "public");
+    bool IsProtected = IsEqual((*TokenStream)->Content, (*TokenStream)->Length, "protected");
+    bool IsPrivate = IsEqual((*TokenStream)->Content, (*TokenStream)->Length, "private");
+    if(IsPublic)
+    {
+        Modifier = AccessModifier_Public;
+    }
+    else if(IsProtected)
+    {
+        Modifier = AccessModifier_Protected;
+    }
+    else if(IsPrivate)
+    {
+        Modifier = AccessModifier_Private;
+    }
+    else
+    {
+        FatalError("Expected access modifier");
+        InvalidCodePath("Expected access modifier");
+    }
+    NextToken(TokenStream);
+
+    if(MatchType(*TokenStream) || MatchKeyword(*TokenStream, "void"))
+    {
+        ReturnType = (*TokenStream)->Content;
+        ReturnTypeLength = (*TokenStream)->Length;
+    }
+    else
+    {
+        FatalError("Expected return type");
+    }
+    NextToken(TokenStream);
+
+    Name = (*TokenStream)->Content;
+    NameLength = (*TokenStream)->Length;
+    NextToken(TokenStream);
+
+    Params = ParseFunctionParams(TokenStream);
+    Statements = ParseStatementBlock(TokenStream);
+
+    Result = NewFunctionDeclaration(NameLength, Name,
+                                    Modifier, ReturnTypeLength,
+                                    ReturnType, Params, Statements);
+
+    return Result;
+}
+
+declaration* ParseUsingDeclaration(token** TokenStream)
+{
+    declaration* Result = 0;
+    u32 Length = (*TokenStream)->Length;
+    char* Name = (*TokenStream)->Content;
+    ExpectToken(TokenStream, TokenType_Identifier);
+
+    while(!MatchToken(*TokenStream, TokenType_EndOfStream) &&
+          !MatchToken(*TokenStream, TokenType_Semicolon))
+    {
+        if(MatchToken(*TokenStream, TokenType_Dot))
+        {
+            NextToken(TokenStream);
+            Length += 1 + (*TokenStream)->Length;
+            ExpectToken(TokenStream, TokenType_Identifier);
+        }
+    }
+
+    ExpectToken(TokenStream, TokenType_Semicolon);
+
+    Result = NewUsingDeclaration(Length, Name);
+
+    return Result;
+}
+
+declaration* ParseClassDeclaration(token** TokenStream)
+{
+    declaration* Result = 0;
+    u32 ClassNameLength = 0;
+    char* ClassName = 0;
+    array<declaration*> Functions = {};
+
+    ClassName = (*TokenStream)->Content;
+    ClassNameLength = (*TokenStream)->Length;
+    ExpectToken(TokenStream, TokenType_Identifier);
+    ExpectToken(TokenStream, TokenType_LBrace);
+
+    while(!MatchToken(*TokenStream, TokenType_EndOfStream) &&
+          !MatchToken(*TokenStream, TokenType_RBrace))
+    {
+        AddToArray(&Functions, ParseFunctionDeclaration(TokenStream));
+    }
+
+    ExpectToken(TokenStream, TokenType_RBrace);
+
+    Result = NewClassDeclaration(ClassNameLength, ClassName, Functions);
+    return Result;
+}
+
 declaration* ParseDeclaration(token** TokenStream)
 {
     declaration* Result = 0;
 
+    if(MatchKeyword(*TokenStream, "class"))
+    {
+        NextToken(TokenStream);
+        Result = ParseClassDeclaration(TokenStream);
+    }
+    else if(MatchKeyword(*TokenStream, "using"))
+    {
+        NextToken(TokenStream);
+        Result = ParseUsingDeclaration(TokenStream);
+    }
 
+    if(!Result)
+    {
+        FatalError("Unexpected declaration: require using or class keywords");
+    }
+    assert(Result);
     return Result;
 }
 
@@ -296,8 +466,10 @@ statement* ParseIfStatement(token** TokenStream)
     array<else_if> ElseIfs = {};
     while(MatchKeyword(*TokenStream, "else"))
     {
+        NextToken(TokenStream);
         if(MatchKeyword(*TokenStream, "if"))
         {
+            NextToken(TokenStream);
             ExpectToken(TokenStream, TokenType_LParen);
             expression* ElseIfCond = ParseExpression(TokenStream);
             ExpectToken(TokenStream, TokenType_RParen);
@@ -335,6 +507,35 @@ statement* ParseDeclarationStatement(token** TokenStream)
     return Result;
 }
 
+bool IsAssignOp(token* TokenStream)
+{
+    token_type Type = TokenStream->Type;
+
+    return (Type == TokenType_Assign) ||
+           (Type == TokenType_PlusAssign) ||
+           (Type == TokenType_MinusAssign) ||
+           (Type == TokenType_MulAssign) ||
+           (Type == TokenType_DivAssign) ||
+           (Type == TokenType_ModAssign);
+}
+
+statement* ParseAssignStatement(token** TokenStream)
+{
+    statement* Result = 0;
+
+    expression* Left = ParseExpression(TokenStream);
+
+    assert(IsAssignOp(*TokenStream));
+    token_type AssignOp = (*TokenStream)->Type;
+    NextToken(TokenStream);
+
+    expression* Right = ParseExpression(TokenStream);
+
+    Result = NewAssignStatement(Left, AssignOp, Right);
+
+    return Result;
+}
+
 statement* ParseSimpleStatement(token** TokenStream)
 {
     statement* Result = 0;
@@ -345,8 +546,86 @@ statement* ParseSimpleStatement(token** TokenStream)
     }
     else
     {
-        Result = ParseExpressionStatement(TokenStream);
+        token* SearchAssignStream = *TokenStream + 1;
+        if(IsAssignOp(SearchAssignStream))
+        {
+            Result = ParseAssignStatement(TokenStream);
+        }
+        else
+        {
+            Result = ParseExpressionStatement(TokenStream);
+        }
     }
+
+    return Result;
+}
+
+statement* ParseForStatement(token** TokenStream)
+{
+    statement* Result = 0;
+
+    statement* Init = 0;
+    expression* Condition = 0;
+    statement* Next = 0;
+    array<statement*> Statements = {};
+
+    ExpectToken(TokenStream, TokenType_LParen);
+
+    Init = ParseSimpleStatement(TokenStream);
+    ExpectToken(TokenStream, TokenType_Semicolon);
+
+    Condition = ParseExpression(TokenStream);
+    ExpectToken(TokenStream, TokenType_Semicolon);
+
+    Next = ParseSimpleStatement(TokenStream);
+
+    ExpectToken(TokenStream, TokenType_RParen);
+    Statements = ParseStatementBlock(TokenStream);
+
+    Result = NewForStatement(Init, Condition, Next, Statements);
+
+    return Result;
+}
+
+statement* ParseWhileStatement(token** TokenStream)
+{
+    statement* Result = 0;
+
+    expression* Condition = 0;
+    array<statement*> Statements = {};
+
+    ExpectToken(TokenStream, TokenType_LParen);
+    Condition = ParseExpression(TokenStream);
+    ExpectToken(TokenStream, TokenType_RParen);
+
+    Statements = ParseStatementBlock(TokenStream);
+
+    Result = NewWhileStatement(Condition, Statements);
+
+    return Result;
+}
+
+statement* ParseDoWhileStatement(token** TokenStream)
+{
+    statement* Result = 0;
+
+    expression* Condition = 0;
+    array<statement*> Statements = {};
+
+    Statements = ParseStatementBlock(TokenStream);
+
+    if(!MatchKeyword(*TokenStream, "while"))
+    {
+        FatalError("Expected while keyword after do block");
+    }
+    NextToken(TokenStream);
+
+    ExpectToken(TokenStream, TokenType_LParen);
+    Condition = ParseExpression(TokenStream);
+    ExpectToken(TokenStream, TokenType_RParen);
+    ExpectToken(TokenStream, TokenType_Semicolon);
+
+    Result = NewDoWhileStatement(Condition, Statements);
 
     return Result;
 }
@@ -361,7 +640,30 @@ statement* ParseStatement(token** TokenStream)
     }
     else if(MatchKeyword(*TokenStream, "for"))
     {
-        NotDone("Statemtnt for");
+        NextToken(TokenStream);
+        Result = ParseForStatement(TokenStream);
+    }
+    else if(MatchKeyword(*TokenStream, "while"))
+    {
+        NextToken(TokenStream);
+        Result = ParseWhileStatement(TokenStream);
+    }
+    else if(MatchKeyword(*TokenStream, "do"))
+    {
+        NextToken(TokenStream);
+        Result = ParseDoWhileStatement(TokenStream);
+    }
+    else if(MatchKeyword(*TokenStream, "return"))
+    {
+        NextToken(TokenStream);
+        expression* Expression = 0;
+        if(!MatchToken(*TokenStream, TokenType_Semicolon))
+        {
+            Expression = ParseExpression(TokenStream);
+        }
+        ExpectToken(TokenStream, TokenType_Semicolon);
+
+        Result = NewReturnStatement(Expression);
     }
     else
     {
@@ -371,10 +673,3 @@ statement* ParseStatement(token** TokenStream)
 
     return Result;
 }
-
-
-
-
-
-
-

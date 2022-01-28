@@ -12,7 +12,7 @@ bool IsWhitespace(char C)
 // TODO: \t \r?
 bool IsNewLine(char C)
 {
-    return (C == '\n');
+    return (C == '\n') || (C == '\r');
 }
 
 // TODO: comments?
@@ -75,14 +75,14 @@ const char* TokenTypeStr(token_type Type)
         case(TokenType_LogicalAnd): {return "&&";} break;
         case(TokenType_LogicalOr): {return "||";} break;
         case(TokenType_LogicalNot): {return "!=";} break;
-        case(TokenType_Assign): {return "Assignment";} break;
-        case(TokenType_PlusAssign): {return "PlusAssign";} break;
-        case(TokenType_MinusAssign): {return "MinusAssign";} break;
-        case(TokenType_MulAssign): {return "MulAssign";} break;
-        case(TokenType_DivAssign): {return "DivAssign";} break;
-        case(TokenType_ModAssign): {return "ModAssign";} break;
-        case(TokenType_ShiftLeft): {return "ShiftLeft";} break;
-        case(TokenType_ShiftRight): {return "ShiftRight";} break;
+        case(TokenType_Assign): {return "=";} break;
+        case(TokenType_PlusAssign): {return "+=";} break;
+        case(TokenType_MinusAssign): {return "-=";} break;
+        case(TokenType_MulAssign): {return "*=";} break;
+        case(TokenType_DivAssign): {return "/=";} break;
+        case(TokenType_ModAssign): {return "%=";} break;
+        case(TokenType_ShiftLeft): {return "<<";} break;
+        case(TokenType_ShiftRight): {return ">>";} break;
         case(TokenType_BitAnd): {return "&";} break;
         case(TokenType_BitOr): {return "|";} break;
         case(TokenType_BitXor): {return "^";} break;
@@ -269,12 +269,40 @@ bool IsEqual(char* Left, u32 LeftLength, char* Right)
     return Result;
 }
 
+bool AreEqual(char* Left, u32 LeftLength, char* Right, u32 RightLength)
+{
+    if(LeftLength != RightLength)
+    {
+        return false;
+    }
+
+    for(u32 Index = 0; Index < LeftLength; Index++)
+    {
+        if(Left[Index] == Right[Index])
+        {
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool MatchKeyword(token* Token, char* Keyword)
 {
     if((Token->Type == TokenType_Identifier) && IsEqual(Token->Content, Token->Length, Keyword))
         return true;
     else
         return false;
+}
+
+bool MatchAccessModifier(token* Token)
+{
+    return MatchKeyword(Token, "public") ||
+           MatchKeyword(Token, "protected") ||
+           MatchKeyword(Token, "private");
 }
 
 bool MatchType(token* Token)

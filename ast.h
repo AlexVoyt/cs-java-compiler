@@ -15,10 +15,6 @@ enum expression_type
     ExpressionType_Paren,
 };
 
-struct expression_list
-{
-};
-
 struct expression
 {
     expression_type Type;
@@ -66,20 +62,49 @@ enum declaration_type
     DeclarationType_None,
     DeclarationType_Variable,
     DeclarationType_Function,
+    DeclarationType_Class,
     DeclarationType_Using,
 };
 
-struct function_params
+struct function_param
 {
-    char* Name; // TODO: haven't decided yet, will this be null terminated stirngs or length specified
+    u32 NameLength;
+    char* Name;
+    u32 TypeLength;
     char* Type;
 };
 
-enum using_modifier_type
+enum access_modifier
 {
-    UsingModifierType_None,
-    UsingModifierType_Static,
+    AccessModifier_Public,
+    AccessModifier_Protected,
+    AccessModifier_Private,
 };
+
+char* ToString(access_modifier Modifier)
+{
+    switch(Modifier)
+    {
+        case AccessModifier_Public:
+        {
+            return "public";
+        } break;
+
+        case AccessModifier_Protected:
+        {
+            return "protected";
+        } break;
+
+        case AccessModifier_Private:
+        {
+            return "private";
+        } break;
+    }
+
+    InvalidCodePath("ToString access modifier");
+    return 0;
+}
+
 
 struct declaration
 {
@@ -97,31 +122,36 @@ struct declaration
 
         struct
         {
+            access_modifier Modifier;
+            u32 ReturnTypeLength;
             char* ReturnType;
-            array<function_params> Params;
+            array<function_param> Params;
+            array<statement*> Statements;
         } Function;
 
         struct
         {
-            using_modifier_type ModifierType;
+            array<declaration*> Functions;
+        } Class;
+
+#if 1
+        struct
+        {
         } Using;
+#endif
     };
 };
 
 enum statement_type
 {
     StatementType_Expression,
+    StatementType_Assign,
     StatementType_Declaration,
     StatementType_If,
     StatementType_While,
     StatementType_DoWhile,
     StatementType_For,
-};
-
-struct statement_list
-{
-    statement* First;
-    statement* Last;
+    StatementType_Return,
 };
 
 struct else_if
@@ -140,6 +170,13 @@ struct statement
 
         struct
         {
+            token_type Op;
+            expression* Left;
+            expression* Right;
+        } Assign;
+
+        struct
+        {
             expression* Condition;
             array<statement*> ThenBlock;
             array<statement*> ElseBlock;
@@ -149,7 +186,7 @@ struct statement
         struct
         {
             expression* Condition;
-            statement_list Statements;
+            array<statement*> Statements;
         } While; // NOTE: also do_while
 
         struct
@@ -157,7 +194,12 @@ struct statement
             statement* Init;
             expression* Condition;
             statement* Next;
-            statement_list Statements;
+            array<statement*> Statements;
         } For;
+
+        struct
+        {
+            expression* Expression;
+        } Return;
     };
 };
