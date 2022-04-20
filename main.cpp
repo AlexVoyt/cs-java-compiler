@@ -30,11 +30,13 @@ typedef double f64;
 #include "print.cpp"
 #include "test.cpp"
 #include "semantic.cpp"
+#include "eval.cpp"
 
 
 int main(int argc, char** argv)
 {
 
+#if 0
     if(argc != 2)
     {
         printf("usage: compiler [--test] [filename]\n");
@@ -51,12 +53,6 @@ int main(int argc, char** argv)
     array<token> Tokens = Tokenize(FileContent);
     token* TokenStream = Tokens.Data;
     array<declaration*> Program;
-#if 0
-    for(u32 i = 0; i < Tokens.Size; i++)
-    {
-        printf("%.*s %s\n", Tokens.Data[i].Length, Tokens.Data[i].Content, TokenTypeStr(Tokens.Data[i].Type));
-    }
-#endif
 
     while(!MatchToken(TokenStream, TokenType_EndOfStream))
     {
@@ -76,6 +72,28 @@ int main(int argc, char** argv)
                 // PrintNewLine(Func);
             }
         }
+    }
+#endif
+    char* Expressions[] =
+    {
+        "2",
+        "2 + 2",
+        "2 + 2 * 5",
+        "2 * 2 + 5",
+        "(2 + 2) * 5",
+        "(2 + Result) * 5",
+        "(2 + 2) * Result",
+    };
+
+    for(u32 ExpressionIndex = 0; ExpressionIndex < ArrayCount(Expressions); ExpressionIndex++)
+    {
+        array<token> Tokens = Tokenize(Expressions[ExpressionIndex]);
+        token* TokenStream = Tokens.Data;
+        expression* Expression = ParseExpression(&TokenStream);
+        PrintNewLine(Expression);
+            expression* EvaluatedExpr = EvalExpr(Expression);
+            PrintNewLine(EvaluatedExpr);
+        printf("\n");
     }
 
 
