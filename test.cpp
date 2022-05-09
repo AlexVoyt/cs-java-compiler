@@ -1,3 +1,9 @@
+#ifndef TEST_CPP
+#define TEST_CPP
+
+#include "parse.h"
+#include "print.h"
+
 void TestLexer()
 {
 #if 0
@@ -37,7 +43,7 @@ void TestExpressionPrinting()
 
 void TestExpressionParsing()
 {
-    char* Expressions[] =
+    const char* Expressions[] =
     {
          "Fib(N, Value + 20, Fact(4)) == 20",
          "Value = 20",
@@ -59,7 +65,9 @@ void TestExpressionParsing()
         "7 > 5 <= 90",
     };
 
-    for(u32 ExpressionIndex = 0; ExpressionIndex < ArrayCount(Expressions); ExpressionIndex++)
+    for(u32 ExpressionIndex = 0;
+        ExpressionIndex < ArrayCount(Expressions);
+        ExpressionIndex++)
     {
         array<token> Tokens = Tokenize(Expressions[ExpressionIndex]);
         token* TokenStream = Tokens.Data;
@@ -70,7 +78,7 @@ void TestExpressionParsing()
 
 void TestStatementParsing()
 {
-    char* Statements[] =
+    const char* Statements[] =
     {
         "if(Value == 15) \
         {\
@@ -153,7 +161,7 @@ void TestStatementParsing()
 
 void TestDeclarationParsing()
 {
-    char* Declarations[] =
+    const char* Declarations[] =
     {
         "class Main\
         {\
@@ -200,7 +208,7 @@ void TestDeclarationParsing()
 
 void TestCompleteProgram()
 {
-    char* Programs[] =
+    const char* Programs[] =
     {
         "using System;\
         using System.Math;\
@@ -261,4 +269,4 @@ void TestParsing()
     TestCompleteProgram();
 }
 
-
+#endif /* TEST_CPP */

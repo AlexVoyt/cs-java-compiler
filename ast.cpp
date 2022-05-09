@@ -1,3 +1,6 @@
+#ifndef AST_CPP
+#define AST_CPP
+
 #include "ast.h"
 
 // TODO: better assertions
@@ -249,3 +252,5 @@ declaration* NewUsingDeclaration(u32 NameLength, char* Name)
 
     return Result;
 }
+
+#endif /* AST_CPP */

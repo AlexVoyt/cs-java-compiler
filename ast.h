@@ -1,3 +1,8 @@
+#ifndef AST_H
+#define AST_H
+
+#include "lexer.h"
+
 struct expression;
 struct statement;
 struct declaration;
@@ -81,7 +86,7 @@ enum access_modifier
     AccessModifier_Private,
 };
 
-char* ToString(access_modifier Modifier)
+const char* ToString(access_modifier Modifier)
 {
     switch(Modifier)
     {
@@ -203,3 +208,43 @@ struct statement
         } Return;
     };
 };
+
+void* AllocateNode(size_t size);
+expression* NewExpression(expression_type Type);
+expression* NewUnaryExpression(token_type Op, expression* Expression);
+expression* NewBinaryExpression(token_type Op, expression* Left, expression* Right);
+expression* NewParenExpression(expression* Expression);
+expression* NewNameExpression(char* Name, u32 Length);
+expression* NewIntegerExpression(u64 Value);
+expression* NewFloatExpression(f64 Value);
+expression* NewFunctionCallExpression(expression* Expression, array<expression*> Arguments);
+declaration* NewDeclaration(declaration_type Type);
+statement* NewStatement(statement_type Type);
+statement* NewExpressionStatement(expression* Expression);
+statement* NewDeclarationStatement(declaration* Declaration);
+statement* NewIfStatement(expression* Condition,
+                          array<statement*> ThenBlock,
+                          array<statement*> ElseBlock,
+                          array<else_if> ElseIfs);
+statement* NewForStatement(statement* Init,
+                           expression* Condition,
+                           statement* Next,
+                           array<statement*> Statements);
+statement* NewWhileStatement(expression* Condition, array<statement*> Statements);
+statement* NewReturnStatement(expression* Expression);
+statement* NewDoWhileStatement(expression* Condition, array<statement*> Statements);
+statement* NewAssignStatement(expression* Left,
+                              token_type AssignOp,
+                              expression* Right);
+declaration* NewDeclaration(declaration_type Type, u32 NameLength, char* Name);
+declaration* NewVariableDeclaration(u32 TypeLength, char* Type,
+                                    u32 NameLength, char* Name,
+                                    expression* Expression);
+declaration* NewFunctionDeclaration(u32 NameLength, char* Name,
+                                    access_modifier Modifier, u32 ReturnTypeLength,
+                                    char* ReturnType, array<function_param> Params,
+                                    array<statement*> Statements);
+declaration* NewClassDeclaration(u32 NameLength, char* Name,
+                                    array<declaration*> Functions);
+declaration* NewUsingDeclaration(u32 NameLength, char* Name);
+#endif /* AST_H */

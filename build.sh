@@ -1,3 +1,3 @@
 #!/bin/bash
 
-g++ -Wall -Wswitch-enum -g main.cpp -o compiler
+g++ -std=c++2a -g main.cpp -o compiler

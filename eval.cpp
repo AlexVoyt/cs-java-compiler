@@ -1,3 +1,8 @@
+#ifndef EVAL_CPP
+#define EVAL_CPP
+
+#include "eval.h"
+
 expression* EvalExpr(expression* Expr)
 {
     expression* Result = {};
@@ -54,6 +59,11 @@ expression* EvalExpr(expression* Expr)
                     {
                         EvalResult = Left->Integer / Right->Integer;
                     } break;
+
+                    default:
+                    {
+                        InvalidCodePath("Binary operator");
+                    } break;
                 }
 
                 Result = NewIntegerExpression(EvalResult);
@@ -75,3 +85,5 @@ expression* EvalExpr(expression* Expr)
     return Result;
 }
 
+
+#endif /* EVAL_CPP */

@@ -4,42 +4,6 @@
 #include "term.h"
 #include "lexer.h"
 
-bool IsWhitespace(char C)
-{
-    return (C == ' ');
-}
-
-// TODO: \t \r?
-bool IsNewLine(char C)
-{
-    return (C == '\n') || (C == '\r');
-}
-
-// TODO: comments?
-void EatWhitespaces(tokenizer* Tokenizer)
-{
-    while(IsWhitespace(*Tokenizer->At) || IsNewLine(*Tokenizer->At))
-    {
-        bool NewLine = IsNewLine(*Tokenizer->At);
-        Tokenizer->At++;
-        if(NewLine)
-        {
-            Tokenizer->Line++;
-        }
-    }
-}
-
-bool IsNumeric(char C)
-{
-    return ((C >= '0') && (C <= '9'));
-}
-
-bool IsAlpha(char C)
-{
-    return (((C >= 'a') && (C <= 'z')) ||
-            ((C >= 'A') && (C <= 'Z')));
-}
-
 // TODO: should add everytime adding something in enum
 const char* TokenTypeStr(token_type Type)
 {
@@ -123,6 +87,20 @@ const char* TokenTypeStr(token* Token)
                 Tokenizer->At++; \
             } \
         } break;
+
+// TODO: comments?
+void EatWhitespaces(tokenizer* Tokenizer)
+{
+    while(IsWhitespace(*Tokenizer->At) || IsNewLine(*Tokenizer->At))
+    {
+        bool NewLine = IsNewLine(*Tokenizer->At);
+        Tokenizer->At++;
+        if(NewLine)
+        {
+            Tokenizer->Line++;
+        }
+    }
+}
 
 token GetToken(tokenizer* Tokenizer)
 {
@@ -243,56 +221,9 @@ bool MatchToken(token* Token, token_type Type)
     else
         return false;
 }
-
-// NOTE: left string is length based, right is null terminated
-bool IsEqual(char* Left, u32 LeftLength, char* Right)
-{
-    bool Result = true;
-    u32 Index = 0;
-    for(; Index < LeftLength; Index++)
-    {
-        if(Left[Index] == Right[Index])
-        {
-        }
-        else
-        {
-            Result = false;
-            break;
-        }
-    }
-
-    if(Right[Index])
-    {
-        Result = false;
-    }
-
-    return Result;
-}
-
-bool AreEqual(char* Left, u32 LeftLength, char* Right, u32 RightLength)
-{
-    if(LeftLength != RightLength)
-    {
-        return false;
-    }
-
-    for(u32 Index = 0; Index < LeftLength; Index++)
-    {
-        if(Left[Index] == Right[Index])
-        {
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 bool MatchKeyword(token* Token, char* Keyword)
 {
-    if((Token->Type == TokenType_Identifier) && IsEqual(Token->Content, Token->Length, Keyword))
+    if((Token->Type == TokenType_Identifier) && AreEqual(Token->Content, Token->Length, Keyword))
         return true;
     else
         return false;
@@ -310,14 +241,14 @@ bool MatchType(token* Token)
     bool Result = false;
     if(Token->Type == TokenType_Identifier)
     {
-        Result = IsEqual(Token->Content, Token->Length, "int") ||
-                 IsEqual(Token->Content, Token->Length, "long") ||
-                 IsEqual(Token->Content, Token->Length, "short") ||
-                 IsEqual(Token->Content, Token->Length, "char") ||
-                 IsEqual(Token->Content, Token->Length, "bool") ||
-                 IsEqual(Token->Content, Token->Length, "double") ||
-                 IsEqual(Token->Content, Token->Length, "float") ||
-                 IsEqual(Token->Content, Token->Length, "byte");
+        Result = AreEqual(Token->Content, Token->Length, "int") ||
+                 AreEqual(Token->Content, Token->Length, "long") ||
+                 AreEqual(Token->Content, Token->Length, "short") ||
+                 AreEqual(Token->Content, Token->Length, "char") ||
+                 AreEqual(Token->Content, Token->Length, "bool") ||
+                 AreEqual(Token->Content, Token->Length, "double") ||
+                 AreEqual(Token->Content, Token->Length, "float") ||
+                 AreEqual(Token->Content, Token->Length, "byte");
     }
 
     return Result;
@@ -360,5 +291,60 @@ array<token> Tokenize(const char* Source)
 
     return Result;
 }
+
+bool IsAssignOp(token* TokenStream)
+{
+    token_type Type = TokenStream->Type;
+
+    return (Type == TokenType_Assign) ||
+           (Type == TokenType_PlusAssign) ||
+           (Type == TokenType_MinusAssign) ||
+           (Type == TokenType_MulAssign) ||
+           (Type == TokenType_DivAssign) ||
+           (Type == TokenType_ModAssign);
+}
+
+bool IsCompareOp(token* TokenStream)
+{
+    token_type Type = TokenStream->Type;
+    return (Type == TokenType_Greater) ||
+           (Type == TokenType_Lesser) ||
+           (Type == TokenType_Equal) ||
+           (Type == TokenType_GEQ) ||
+           (Type == TokenType_LEQ) ||
+           (Type == TokenType_NEQ);
+}
+
+bool IsShiftOp(token* TokenStream)
+{
+    token_type Type = TokenStream->Type;
+    return (Type == TokenType_ShiftLeft) ||
+           (Type == TokenType_ShiftRight);
+}
+
+bool IsAddOp(token* TokenStream)
+{
+    token_type Type = TokenStream->Type;
+    return (Type == TokenType_Plus) ||
+           (Type == TokenType_Minus);
+}
+
+bool IsMulOp(token* TokenStream)
+{
+    token_type Type = TokenStream->Type;
+    return (Type == TokenType_Asterisk) ||
+           (Type == TokenType_Slash) ||
+           (Type == TokenType_Percent);
+}
+
+bool IsUnaryOp(token* TokenStream)
+{
+    token_type Type = TokenStream->Type;
+    return (Type == TokenType_Increment) ||
+           (Type == TokenType_Decrement) ||
+           (Type == TokenType_Minus) ||
+           (Type == TokenType_Plus);
+}
+
 
 #endif /* LEXER_CPP */

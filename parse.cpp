@@ -1,3 +1,8 @@
+#ifndef PARSE_CPP
+#define PARSE_CPP
+
+#include "parse.h"
+
 expression* ParseExpression(token** TokenStream);
 statement* ParseStatement(token** TokenStream);
 array<statement*> ParseStatementBlock(token** TokenStream);
@@ -73,15 +78,6 @@ expression* ParseExpressionBase(token** TokenStream)
     return Result;
 }
 
-bool IsUnaryOp(token* TokenStream)
-{
-    token_type Type = TokenStream->Type;
-    return (Type == TokenType_Increment) ||
-           (Type == TokenType_Decrement) ||
-           (Type == TokenType_Minus) ||
-           (Type == TokenType_Plus);
-}
-
 expression* ParseExpressionUnary(token** TokenStream)
 {
     if(IsUnaryOp(*TokenStream))
@@ -96,14 +92,6 @@ expression* ParseExpressionUnary(token** TokenStream)
     }
 }
 
-bool IsMulOp(token* TokenStream)
-{
-    token_type Type = TokenStream->Type;
-    return (Type == TokenType_Asterisk) ||
-           (Type == TokenType_Slash) ||
-           (Type == TokenType_Percent);
-}
-
 expression* ParseExpressionMul(token** TokenStream)
 {
     expression* Result = ParseExpressionUnary(TokenStream);
@@ -114,13 +102,6 @@ expression* ParseExpressionMul(token** TokenStream)
         Result = NewBinaryExpression(Op, Result, ParseExpressionUnary(TokenStream));
     }
     return Result;
-}
-
-bool IsAddOp(token* TokenStream)
-{
-    token_type Type = TokenStream->Type;
-    return (Type == TokenType_Plus) ||
-           (Type == TokenType_Minus);
 }
 
 expression* ParseExpressionAdd(token** TokenStream)
@@ -135,13 +116,6 @@ expression* ParseExpressionAdd(token** TokenStream)
     return Result;
 }
 
-bool IsShiftOp(token* TokenStream)
-{
-    token_type Type = TokenStream->Type;
-    return (Type == TokenType_ShiftLeft) ||
-           (Type == TokenType_ShiftRight);
-}
-
 expression* ParseExpressionShift(token** TokenStream)
 {
     expression* Result = ParseExpressionAdd(TokenStream);
@@ -152,17 +126,6 @@ expression* ParseExpressionShift(token** TokenStream)
         Result = NewBinaryExpression(Op, Result, ParseExpressionAdd(TokenStream));
     }
     return Result;
-}
-
-bool IsCompareOp(token* TokenStream)
-{
-    token_type Type = TokenStream->Type;
-    return (Type == TokenType_Greater) ||
-           (Type == TokenType_Lesser) ||
-           (Type == TokenType_Equal) ||
-           (Type == TokenType_GEQ) ||
-           (Type == TokenType_LEQ) ||
-           (Type == TokenType_NEQ);
 }
 
 expression* ParseExpressionCompare(token** TokenStream)
@@ -318,9 +281,9 @@ declaration* ParseFunctionDeclaration(token** TokenStream)
     array<function_param> Params = {};
     array<statement*> Statements = {};
 
-    bool IsPublic = IsEqual((*TokenStream)->Content, (*TokenStream)->Length, "public");
-    bool IsProtected = IsEqual((*TokenStream)->Content, (*TokenStream)->Length, "protected");
-    bool IsPrivate = IsEqual((*TokenStream)->Content, (*TokenStream)->Length, "private");
+    bool IsPublic = AreEqual((*TokenStream)->Content, (*TokenStream)->Length, "public");
+    bool IsProtected = AreEqual((*TokenStream)->Content, (*TokenStream)->Length, "protected");
+    bool IsPrivate = AreEqual((*TokenStream)->Content, (*TokenStream)->Length, "private");
     if(IsPublic)
     {
         Modifier = AccessModifier_Public;
@@ -507,18 +470,6 @@ statement* ParseDeclarationStatement(token** TokenStream)
     return Result;
 }
 
-bool IsAssignOp(token* TokenStream)
-{
-    token_type Type = TokenStream->Type;
-
-    return (Type == TokenType_Assign) ||
-           (Type == TokenType_PlusAssign) ||
-           (Type == TokenType_MinusAssign) ||
-           (Type == TokenType_MulAssign) ||
-           (Type == TokenType_DivAssign) ||
-           (Type == TokenType_ModAssign);
-}
-
 statement* ParseAssignStatement(token** TokenStream)
 {
     statement* Result = 0;
@@ -673,3 +624,5 @@ statement* ParseStatement(token** TokenStream)
 
     return Result;
 }
+
+#endif /* PARSE_CPP */

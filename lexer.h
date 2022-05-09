@@ -1,6 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include "utils.h"
+
 struct tokenizer
 {
     char* At;
@@ -97,15 +99,28 @@ struct token
     };
 };
 
+bool IsAssignOp(token* TokenStream);
+bool IsUnaryOp(token* TokenStream);
+bool IsMulOp(token* TokenStream);
+bool IsAddOp(token* TokenStream);
+bool IsShiftOp(token* TokenStream);
+bool IsCompareOp(token* TokenStream);
+
 const char* TokenTypeStr(token* Token);
 token GetToken(tokenizer* Tokenizer);
 void PrintToken(token* Token);
-
-bool IsWhitespace(char C);
-bool IsNewLine(char C);
 void EatWhitespaces(tokenizer* Tokenizer);
-bool IsNumeric(char C);
-bool IsAlpha(char C);
 
+const char* TokenTypeStr(token_type Type);
+const char* TokenTypeStr(token* Token);
+token GetToken(tokenizer* Tokenizer);
+void PrintToken(token* Token);
+void NextToken(token** Stream);
+bool MatchToken(token* Token, token_type Type);
+bool MatchKeyword(token* Token, char* Keyword);
+bool MatchAccessModifier(token* Token);
+bool MatchType(token* Token);
+void ExpectToken(token** Token, token_type ExpectedType);
+array<token> Tokenize(const char* Source);
 
 #endif /* LEXER_H */

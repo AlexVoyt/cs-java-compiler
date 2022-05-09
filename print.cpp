@@ -1,3 +1,10 @@
+#ifndef PRINT_CPP
+#define PRINT_CPP
+
+#include "utils.h"
+#include "ast.h"
+#include "print.h"
+
 // TODO: Maybe this should not be static
 static u32 Indent = 0;
 void PrintStatementBlock(array<statement*> Block);
@@ -271,3 +278,5 @@ void PrintNewLine(declaration* Decl)
     printf("\n\n");
 }
 
+
+#endif /* PRINT_CPP */

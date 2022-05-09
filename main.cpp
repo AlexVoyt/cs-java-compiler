@@ -3,27 +3,9 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
-#define global_variable static
-
-typedef int8_t  i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-
-typedef float f32;
-typedef double f64;
-
-#define str(x) #x
-#define xstr(x) str(x)
-#define ArrayCount(x) sizeof((x))/sizeof((x)[0])
 
 #include "term.h"
-#include "util.cpp"
+#include "utils.cpp"
 #include "lexer.cpp"
 #include "ast.cpp"
 #include "parse.cpp"
@@ -74,7 +56,7 @@ int main(int argc, char** argv)
         }
     }
 #endif
-    char* Expressions[] =
+    const char* Expressions[] =
     {
         "2",
         "2 + 2",
@@ -89,14 +71,15 @@ int main(int argc, char** argv)
     {
         array<token> Tokens = Tokenize(Expressions[ExpressionIndex]);
         token* TokenStream = Tokens.Data;
+
         expression* Expression = ParseExpression(&TokenStream);
         PrintNewLine(Expression);
-            expression* EvaluatedExpr = EvalExpr(Expression);
-            PrintNewLine(EvaluatedExpr);
-        printf("\n");
+
+        expression* EvaluatedExpr = EvalExpr(Expression);
+        PrintNewLine(EvaluatedExpr);
+
+        printf("====\n");
     }
-
-
 
     printf("\n");
     return 0;
