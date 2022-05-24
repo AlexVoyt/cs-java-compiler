@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
+#include <set>
 
 #include "term.h"
 #include "utils.cpp"
@@ -10,15 +11,19 @@
 #include "ast.cpp"
 #include "parse.cpp"
 #include "print.cpp"
-#include "test.cpp"
 #include "semantic.cpp"
 #include "eval.cpp"
+#include "codegen.cpp"
 
+#include "test.cpp"
+struct program
+{
+    array<declaration*> Declarations;
+    array<declaration*> Functions;
+};
 
 int main(int argc, char** argv)
 {
-
-#if 0
     if(argc != 2)
     {
         printf("usage: compiler [--test] [filename]\n");
@@ -28,57 +33,69 @@ int main(int argc, char** argv)
     if(strcmp(argv[1], "--test") == 0)
     {
         TestParsing();
+        TestExpressionEvaluation();
+        TestCodeGeneration();
         return 0;
     }
+
+    program Program;
 
     char* FileContent = ReadFile(argv[1]);
     array<token> Tokens = Tokenize(FileContent);
     token* TokenStream = Tokens.Data;
-    array<declaration*> Program;
+    bool SemOk = true;
 
     while(!MatchToken(TokenStream, TokenType_EndOfStream))
     {
-        AddToArray(&Program, ParseDeclaration(&TokenStream));
-    }
+        declaration* Decl = ParseDeclaration(&TokenStream);
+        AddToArray(&Program.Declarations, Decl);
 
-    for(u32 DeclarationIndex = 0; DeclarationIndex < Program.Size; DeclarationIndex++)
-    {
-        declaration* Decl = *(Program.Data + DeclarationIndex);
         if(Decl->Type == DeclarationType_Class)
         {
             for(u32 FunctionIndex = 0; FunctionIndex < Decl->Class.Functions.Size; FunctionIndex++)
             {
                 declaration* Func = *(Decl->Class.Functions.Data + FunctionIndex);
                 AddToArray(&KnownFunctions, Func);
-                PerformSemAnalyse(Func);
-                // PrintNewLine(Func);
+                SemOk = SemOk && PerformSemAnalyse(Func);
+                AddToArray(&Program.Functions, Func);
             }
         }
     }
-#endif
-    const char* Expressions[] =
+
+    if(!SemOk)
     {
-        "2",
-        "2 + 2",
-        "2 + 2 * 5",
-        "2 * 2 + 5",
-        "(2 + 2) * 5",
-        "(2 + Result) * 5",
-        "(2 + 2) * Result",
-    };
+        FatalError("Errors during semantic analysis");
+    }
 
-    for(u32 ExpressionIndex = 0; ExpressionIndex < ArrayCount(Expressions); ExpressionIndex++)
+    bool MainFound = false;
+    declaration* Main = 0;
+
+    for(u32 DeclIndex = 0; DeclIndex < Program.Declarations.Size; DeclIndex++)
     {
-        array<token> Tokens = Tokenize(Expressions[ExpressionIndex]);
-        token* TokenStream = Tokens.Data;
+        declaration* Decl = Program.Declarations.Data[DeclIndex];
+        if(Decl->Type != DeclarationType_Class)
+            continue;
 
-        expression* Expression = ParseExpression(&TokenStream);
-        PrintNewLine(Expression);
+        for(u32 FunctionIndex = 0; FunctionIndex < Decl->Class.Functions.Size; FunctionIndex++)
+        {
+            declaration* Func = Decl->Class.Functions.Data[FunctionIndex];
+            if(!AreEqual(Func->Name, Func->NameLength, "Main"))
+                continue;
 
-        expression* EvaluatedExpr = EvalExpr(Expression);
-        PrintNewLine(EvaluatedExpr);
+            MainFound = true;
+            Main = Func;
+        }
+    }
 
-        printf("====\n");
+    if(!MainFound)
+    {
+        FatalError("Main not found");
+    }
+
+    for(u32 DeclIndex = 0; DeclIndex < Program.Declarations.Size; DeclIndex++)
+    {
+        PerformExprEvaluation(Program.Declarations.Data[DeclIndex]);
+        Gen(Program.Declarations.Data[DeclIndex]);
     }
 
     printf("\n");

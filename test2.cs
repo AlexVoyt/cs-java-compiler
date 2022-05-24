@@ -1,28 +1,41 @@
 class Program
 {
-    private void ConsoleWriteLine(int argument)
-    {
-        return argument;
-    }
-
     private int TryParse(int first, int second)
     {
-        return first ;
+        bool Var;
+        return first;
+    }
+
+    private void ConsoleWriteLine(int argument)
+    {
+        int Index = 3 + 5;
+        TryParse(3, 17*Index + 430);
+        return argument + Index + 9*65;
     }
 
     private int IsNaN(int arg)
     {
-        for(int Index = 0; Index < 100; ++Index)
+        int Index = 0;
+        for(Index = 0; Index < 100; Index += 1)
         {
             arg += Index;
+            while(arg <= Index*20)
+            {
+                ConsoleWriteLine(-7);
+            }
         }
 
         return Index;
     }
 
-    public double ConsoleReadLine()
+    private sbyte TEst()
     {
-        return 10;
+        return 3;
+    }
+
+    private void VoidTest()
+    {
+        return;
     }
 
     public double ConsoleReadLine()
@@ -39,6 +52,7 @@ class Program
     {
         int endApp = args;
         ConsoleWriteLine(2);
+        ConsoleWriteLine(321*4389*args);
         ConsoleWriteLine(321);
 
         while (endApp)

@@ -110,7 +110,6 @@ const char* ToString(access_modifier Modifier)
     return 0;
 }
 
-
 struct declaration
 {
     declaration_type Type;
@@ -218,7 +217,6 @@ expression* NewNameExpression(char* Name, u32 Length);
 expression* NewIntegerExpression(u64 Value);
 expression* NewFloatExpression(f64 Value);
 expression* NewFunctionCallExpression(expression* Expression, array<expression*> Arguments);
-declaration* NewDeclaration(declaration_type Type);
 statement* NewStatement(statement_type Type);
 statement* NewExpressionStatement(expression* Expression);
 statement* NewDeclarationStatement(declaration* Declaration);

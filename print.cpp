@@ -260,6 +260,22 @@ void PrintStatementBlock(array<statement*> Block)
     printf(")");
 }
 
+void Print(array<expression*> Exprs)
+{
+    for(u32 ExpressionIndex = 0; ExpressionIndex < Exprs.Size; ExpressionIndex++)
+    {
+        PrintNewLine(Exprs.Data[ExpressionIndex]);
+    }
+}
+
+void Print(array<declaration*> Decls)
+{
+    for(u32 DeclarationIndex = 0; DeclarationIndex < Decls.Size; DeclarationIndex++)
+    {
+        PrintNewLine(Decls.Data[DeclarationIndex]);
+    }
+}
+
 void PrintNewLine(expression* Expr)
 {
     Print(Expr);

@@ -248,7 +248,7 @@ bool MatchType(token* Token)
                  AreEqual(Token->Content, Token->Length, "bool") ||
                  AreEqual(Token->Content, Token->Length, "double") ||
                  AreEqual(Token->Content, Token->Length, "float") ||
-                 AreEqual(Token->Content, Token->Length, "byte");
+                 AreEqual(Token->Content, Token->Length, "sbyte");
     }
 
     return Result;

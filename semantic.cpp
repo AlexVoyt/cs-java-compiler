@@ -1,23 +1,24 @@
 static array<declaration*> KnownFunctions = {};
 
-void Check(expression* Expression, array<declaration*>* KnownVariables)
+bool Check(expression* Expression, array<declaration*>* KnownVariables)
 {
+    bool Result = true;
     switch(Expression->Type)
     {
         case ExpressionType_Binary:
         {
-            Check(Expression->Binary.Left, KnownVariables);
-            Check(Expression->Binary.Right, KnownVariables);
+            Result = Result && Check(Expression->Binary.Left, KnownVariables);
+            Result = Result && Check(Expression->Binary.Right, KnownVariables);
         } break;
 
         case ExpressionType_Unary:
         {
-            Check(Expression->Unary.Expression, KnownVariables);
+            Result = Result && Check(Expression->Unary.Expression, KnownVariables);
         } break;
 
         case ExpressionType_Paren:
         {
-            Check(Expression->Paren.Expression, KnownVariables);
+            Result = Result && Check(Expression->Paren.Expression, KnownVariables);
         } break;
 
         case ExpressionType_Name:
@@ -36,6 +37,7 @@ void Check(expression* Expression, array<declaration*>* KnownVariables)
             if(!Found)
             {
                 printf("Variable %.*s is not defined\n", Expression->Name.Length, Expression->Name.Ident);
+                return false;
             }
         } break;
 
@@ -61,13 +63,17 @@ void Check(expression* Expression, array<declaration*>* KnownVariables)
             {
                 printf("Function %.*s is not defined\n", Expression->FunctionCall.Length,
                                                          Expression->FunctionCall.Name);
+                return false;
             }
         } break;
     }
+
+    return Result;
 }
 
-void Check(statement* Statement, array<declaration*>* KnownVariables)
+bool Check(statement* Statement, array<declaration*>* KnownVariables)
 {
+    bool Result = true;
     switch(Statement->Type)
     {
         case StatementType_Declaration:
@@ -77,13 +83,13 @@ void Check(statement* Statement, array<declaration*>* KnownVariables)
 
         case StatementType_Expression:
         {
-            Check(Statement->Expression, KnownVariables);
+            Result = Result && Check(Statement->Expression, KnownVariables);
         } break;
 
         case StatementType_Assign:
         {
-            Check(Statement->Assign.Left, KnownVariables);
-            Check(Statement->Assign.Right, KnownVariables);
+            Result = Result && Check(Statement->Assign.Left, KnownVariables);
+            Result = Result && Check(Statement->Assign.Right, KnownVariables);
         } break;
 
         case StatementType_For:
@@ -98,7 +104,7 @@ void Check(statement* Statement, array<declaration*>* KnownVariables)
             for(u32 StatementIndex = 0; StatementIndex < Statement->For.Statements.Size; StatementIndex++)
             {
                 statement* InnerStatement = *(Statement->For.Statements.Data + StatementIndex);
-                Check(InnerStatement, KnownVariables);
+                Result = Result && Check(InnerStatement, KnownVariables);
             }
 
             KnownVariables->Size = KnownVariableSize;
@@ -108,11 +114,11 @@ void Check(statement* Statement, array<declaration*>* KnownVariables)
         case StatementType_DoWhile:
         {
             u32 KnownVariableSize = KnownVariables->Size;
-            Check(Statement->While.Condition, KnownVariables);
+            Result = Result && Check(Statement->While.Condition, KnownVariables);
             for(u32 StatementIndex = 0; StatementIndex < Statement->While.Statements.Size; StatementIndex++)
             {
                 statement* InnerStatement = *(Statement->While.Statements.Data + StatementIndex);
-                Check(InnerStatement, KnownVariables);
+                Result = Result && Check(InnerStatement, KnownVariables);
             }
 
             KnownVariables->Size = KnownVariableSize;
@@ -120,12 +126,12 @@ void Check(statement* Statement, array<declaration*>* KnownVariables)
 
         case StatementType_If:
         {
-            Check(Statement->If.Condition, KnownVariables);
+            Result = Result && Check(Statement->If.Condition, KnownVariables);
             u32 KnownVariableSize = KnownVariables->Size;
             for(u32 StatementIndex = 0; StatementIndex < Statement->If.ThenBlock.Size; StatementIndex++)
             {
                 statement* InnerStatement = *(Statement->If.ThenBlock.Data + StatementIndex);
-                Check(InnerStatement, KnownVariables);
+                Result = Result && Check(InnerStatement, KnownVariables);
             }
             KnownVariables->Size = KnownVariableSize;
 
@@ -133,12 +139,12 @@ void Check(statement* Statement, array<declaration*>* KnownVariables)
             {
                 else_if ElseIf = Statement->If.ElseIfs.Data[ElseIfIndex];
 
-                Check(ElseIf.Condition, KnownVariables);
+                Result = Result && Check(ElseIf.Condition, KnownVariables);
                 KnownVariableSize = KnownVariables->Size;
                 for(u32 StatementIndex = 0; StatementIndex < ElseIf.StatementBlock.Size; StatementIndex++)
                 {
                     statement* InnerStatement = *(ElseIf.StatementBlock.Data + StatementIndex);
-                    Check(InnerStatement, KnownVariables);
+                    Result = Result && Check(InnerStatement, KnownVariables);
                 }
                 KnownVariables->Size = KnownVariableSize;
             }
@@ -147,7 +153,7 @@ void Check(statement* Statement, array<declaration*>* KnownVariables)
             for(u32 StatementIndex = 0; StatementIndex < Statement->If.ElseBlock.Size; StatementIndex++)
             {
                 statement* InnerStatement = *(Statement->If.ElseBlock.Data + StatementIndex);
-                Check(InnerStatement, KnownVariables);
+                Result = Result && Check(InnerStatement, KnownVariables);
             }
             KnownVariables->Size = KnownVariableSize;
 
@@ -157,14 +163,18 @@ void Check(statement* Statement, array<declaration*>* KnownVariables)
         {
             if(Statement->Return.Expression)
             {
-                Check(Statement->Return.Expression, KnownVariables);
+                Result = Result && Check(Statement->Return.Expression, KnownVariables);
             }
         } break;
     }
+
+    return Result;
 }
 
-void PerformSemAnalyse(declaration* Function)
+bool PerformSemAnalyse(declaration* Function)
 {
+    bool Result = true;
+
     // TODO: memleak, but who cares
     array<declaration*> KnownVariables = {};
     for(u32 StatementIndex = 0; StatementIndex < Function->Function.Statements.Size; StatementIndex++)
@@ -178,6 +188,9 @@ void PerformSemAnalyse(declaration* Function)
                                                        0);
             AddToArray(&KnownVariables, Decl);
         }
-        Check(Statement, &KnownVariables);
+
+        Result = Result && Check(Statement, &KnownVariables);
     }
+
+    return Result;
 }
