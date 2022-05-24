@@ -28,14 +28,24 @@ class Program
         return Index;
     }
 
-    private sbyte TEst()
+    private sbyte Test3()
     {
         return 3;
     }
 
+    private sbyte Test2()
+    {
+        return Test3();
+    }
+
+    private sbyte Test1()
+    {
+        return Test2();
+    }
+
     private void VoidTest()
     {
-        return;
+        return Test2();
     }
 
     public double ConsoleReadLine()
@@ -54,6 +64,7 @@ class Program
         ConsoleWriteLine(2);
         ConsoleWriteLine(321*4389*args);
         ConsoleWriteLine(321);
+        Test2();
 
         while (endApp)
         {
